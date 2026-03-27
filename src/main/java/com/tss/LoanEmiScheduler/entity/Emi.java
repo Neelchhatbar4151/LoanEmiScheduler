@@ -1,6 +1,5 @@
 package com.tss.LoanEmiScheduler.entity;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -15,7 +14,7 @@ import java.time.LocalDate;
 
 @Table(name = "emis",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"loan_id", "installment_no"})
+                @UniqueConstraint(columnNames = {"loan_id", "installment_no", "version"})
         })
 @Entity
 @Setter
