@@ -10,9 +10,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Table(name = "emis")
+@Table(name = "emis",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"loan_id", "installment_no"})
+        })
 @Entity
 @Setter
 @Getter
@@ -21,34 +25,34 @@ import java.time.LocalDate;
 @Check(constraints =
         "installment_no > 0 " +
         "AND emi_amount>=0 " +
-        "AND principle_component >= 0 " +
+        "AND principal_component >= 0 " +
         "AND interest_component >= 0 " +
-                "AND version > 0"
+                "AND version >= 0"
 )
 public class Emi extends BaseEntity {
-    @ManyToOne
-    @JoinColumn(name = "loan_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_id", nullable = false, updatable = false)
     private Loan loan;
 
-    @Column(nullable = false, name = "installment_no")
+    @Column(nullable = false, name = "installment_no", updatable = false)
     private Integer installmentNo;
 
     @FutureOrPresent
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDate dueDate;
 
-    @Column(name = "emi_amount", nullable = false)
-    private Double emiAmount;
+    @Column(name = "emi_amount", nullable = false, precision = 19, scale = 2)
+    private BigDecimal emiAmount;
 
-    @Column(nullable = false, name = "principle_component")
-    private Double principleComponent;
+    @Column(nullable = false, name = "principal_component", precision = 19, scale = 2)
+    private BigDecimal principalComponent;
 
-    @Column(nullable = false, name = "interest_component")
-    private Double interestComponent;
+    @Column(nullable = false, name = "interest_component", precision = 19, scale = 2)
+    private BigDecimal interestComponent;
 
     @OneToOne
     @JoinColumn(name = "penalty_id")
-    private Penalty penalty;
+    private Penalty penalty; //one to many?
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

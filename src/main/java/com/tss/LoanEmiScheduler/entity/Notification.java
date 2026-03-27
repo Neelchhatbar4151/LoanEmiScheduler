@@ -15,18 +15,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Notification extends BaseEntity{
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private NotificationType notificationType;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "loan_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_id", nullable = false, updatable = false)
     private Loan loan;
 
-    @ManyToOne
-    @JoinColumn(name = "emi_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "emi_id", updatable = false)
     private Emi emi;
 }

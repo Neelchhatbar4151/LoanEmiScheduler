@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Check;
+
+import java.math.BigDecimal;
 
 @Table(name = "payment_allocations")
 @Entity
@@ -13,19 +16,20 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Check(constraints = "amount_allocated > 0")
 public class PaymentAllocation extends BaseEntity{
-    @ManyToOne
-    @JoinColumn(name = "transaction_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transaction_id", nullable = false, updatable = false)
     private Transaction transaction;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private PaymentAllocationType paymentAllocationType;
 
-    @ManyToOne
-    @JoinColumn(name = "emi_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "emi_id", nullable = false, updatable = false)
     private Emi emi;
 
-    @Column(nullable = false)
-    private Double amountAllocated;
+    @Column(nullable = false, precision = 19, scale = 2, updatable = false)
+    private BigDecimal amountAllocated;
 }

@@ -6,11 +6,15 @@ import com.tss.LoanEmiScheduler.enums.LoanType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Check;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,14 +24,19 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Check(constraints = "tenure > 0 AND " +
+        "principal_amount > 0 AND " +
+        "interest_rate >= 0 AND " +
+        "outstanding_balance >= 0 AND " +
+        "outstanding_balance <= principal_amount")
 public class Loan extends BaseEntity{
-    @ManyToOne
-    @JoinColumn(name = "borrower_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "borrower_id", nullable = false, updatable = false)
     private Borrower borrower;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "officer_id", nullable = false)
-    private Officer officer; //officer that manages this loan
+    private Officer officer; //officer who manages this loan
 
     @PastOrPresent
     private LocalDateTime approvedAt;
@@ -35,16 +44,19 @@ public class Loan extends BaseEntity{
     @FutureOrPresent
     private LocalDate closedAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
+    @Positive
     private Integer tenure; //num of months
 
-    @Column(nullable = false)
-    private Double principleAmount;
+    @Column(nullable = false, updatable = false)
+    @Positive
+    private BigDecimal principalAmount;
 
     @Column(nullable = false)
-    private Double interestRate;
+    @PositiveOrZero
+    private BigDecimal interestRate; //annual
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
@@ -53,7 +65,7 @@ public class Loan extends BaseEntity{
     private LoanStatus loanStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LoanType loanType;
 
     @Enumerated(EnumType.STRING)
@@ -61,9 +73,10 @@ public class Loan extends BaseEntity{
     private LoanStrategy loanStrategy;
 
     @Column(nullable = false)
-    private Double outstandingBalance;
+    @PositiveOrZero
+    private BigDecimal outstandingBalance;
 
-    @OneToOne
+    @OneToOne //One to many?
     @JoinColumn(name = "penalty_id")
     private Penalty penalty;
 }
