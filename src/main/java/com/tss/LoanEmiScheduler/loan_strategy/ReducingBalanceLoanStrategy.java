@@ -30,7 +30,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ReducingBalanceStrategy implements ILoanStrategy {
+public class ReducingBalanceLoanStrategy implements ILoanStrategy {
 
     private final EmiRepository emiRepo;
     private final PaymentAllocationRepository paymentAllocationRepo;
@@ -68,11 +68,7 @@ public class ReducingBalanceStrategy implements ILoanStrategy {
         BigDecimal principal = loan.getPrincipalAmount();
         int tenure = loan.getTenure();
 
-        BigDecimal emiAmount = calculateEmi(
-                principal,
-                loan.getInterestRate(),
-                tenure
-        );
+        BigDecimal emiAmount = calculateEmi(principal, loan.getInterestRate(),tenure);
 
         BigDecimal balance = principal;
 
