@@ -19,7 +19,7 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
                   SELECT MAX(e2.version)
                   FROM Emi e2
                   WHERE e2.loan.id = e.loan.id
-                    AND e2.installmentNumber = e.installmentNumber
+                    AND e2.installmentNo = e.installmentNo
                     AND e2.createdAt < :nextDate
                     AND e2.isDeleted = false
               )
@@ -28,4 +28,8 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
             @Param("loanId") Long loanId,
             @Param("nextDate") LocalDateTime nextDate
     );
+
+    boolean existsByLoanId(Long loanId);
+
+    List<Emi> findByLoanIdAndIsActive(Long loanId, boolean isActive);
 }

@@ -15,5 +15,5 @@ public interface ILoanStrategy {
 
     List<Emi> generateSchedule(Loan loan);
 
-    List<Emi> reAmortize(Loan loan);
+    List<Emi> reAmortize(Loan loan, Emi triggerEmi);
 }

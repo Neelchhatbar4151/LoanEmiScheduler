@@ -26,7 +26,8 @@ import java.time.LocalDate;
         "AND emi_amount>=0 " +
         "AND principal_component >= 0 " +
         "AND interest_component >= 0 " +
-                "AND version >= 0"
+        "AND version >= 0 " +
+        "AND penal_interest >= 0"
 )
 public class Emi extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
@@ -62,4 +63,10 @@ public class Emi extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isActive=false;
+
+    @Column(nullable = false, name = "penal_interest", precision = 19, scale = 2)
+    private BigDecimal penalInterest;
+
+    @Column(nullable = false)
+    private LocalDate lastCalculatedDate;
 }

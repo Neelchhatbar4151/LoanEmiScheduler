@@ -11,11 +11,11 @@ import java.util.List;
 public interface LoanMapper {
 
     @Mapping(source = "borrower.accountNumber", target = "borrowerAccountNumber")
-    @Mapping(source = "borrower.name", target = "borrowerAccountName")
+    @Mapping(source = "borrower.firstName", target = "borrowerAccountName")
 
     @Mapping(source = "approvedAt", target = "disbursementDate")
 
-    @Mapping(source = "branch.name", target = "branch")
+    @Mapping(source = "branch.branchName", target = "branch")
 
     @Mapping(source = "penalty.penaltyAmount", target = "penaltyAmount", defaultExpression = "java(java.math.BigDecimal.ZERO)")
     @Mapping(source = "penalty.remainingAmount", target = "penaltyRemaining", defaultExpression = "java(java.math.BigDecimal.ZERO)")
