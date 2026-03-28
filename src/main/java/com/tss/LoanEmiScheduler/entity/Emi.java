@@ -1,6 +1,5 @@
 package com.tss.LoanEmiScheduler.entity;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -15,7 +14,7 @@ import java.time.LocalDate;
 
 @Table(name = "emis",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"loan_id", "installment_no"})
+                @UniqueConstraint(columnNames = {"loan_id", "installment_no", "version"})
         })
 @Entity
 @Setter
@@ -27,7 +26,8 @@ import java.time.LocalDate;
         "AND emi_amount>=0 " +
         "AND principal_component >= 0 " +
         "AND interest_component >= 0 " +
-                "AND version >= 0"
+        "AND version >= 0 " +
+        "AND penal_interest >= 0"
 )
 public class Emi extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,4 +63,10 @@ public class Emi extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isActive=false;
+
+    @Column(nullable = false, name = "penal_interest", precision = 19, scale = 2)
+    private BigDecimal penalInterest;
+
+    @Column(nullable = false)
+    private LocalDate lastCalculatedDate;
 }
