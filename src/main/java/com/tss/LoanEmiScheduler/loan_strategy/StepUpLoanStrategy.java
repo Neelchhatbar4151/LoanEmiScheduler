@@ -108,7 +108,7 @@ public class StepUpLoanStrategy implements ILoanStrategy {
     public List<Emi> reAmortize(Loan loan, Emi triggerEmi) {
 
         if (!emiRepo.existsByLoanId(loan.getId())) {
-            throw new ResourceNotFoundException();
+            throw new ResourceNotFoundException("Schedule");
         }
 
         List<Emi> emis = new ArrayList<>(emiRepo.findByLoanIdAndIsActive(loan.getId(), true));
@@ -211,8 +211,10 @@ public class StepUpLoanStrategy implements ILoanStrategy {
             emi.setEmiAmount(emiAmount);
             emi.setInterestComponent(interest);
             emi.setPrincipalComponent(principal);
-
-            emi.setEmiStatus(EmiStatus.PENDING);
+            if(emiAmount.compareTo(BigDecimal.ZERO) == 0)
+                emi.setEmiStatus(EmiStatus.CANCELLED);
+            else
+                emi.setEmiStatus(EmiStatus.PENDING);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
 

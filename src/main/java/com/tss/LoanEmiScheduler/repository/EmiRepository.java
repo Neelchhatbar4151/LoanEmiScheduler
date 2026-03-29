@@ -18,14 +18,12 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
             FROM Emi e
             WHERE e.loan.id = :loanId
               AND e.createdAt < :nextDate
-              AND e.isDeleted = false
               AND e.version = (
                   SELECT MAX(e2.version)
                   FROM Emi e2
                   WHERE e2.loan.id = e.loan.id
                     AND e2.installmentNo = e.installmentNo
                     AND e2.createdAt < :nextDate
-                    AND e2.isDeleted = false
               )
             """)
     List<Emi> findEmiScheduleAsOfDate(
@@ -43,7 +41,7 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
             WHERE e.loan = :loan
             AND e.isActive = true
             AND e.emiStatus <> 'PAID'
-            AND e.isDeleted = false
+            AND e.emiStatus <> 'CANCELLED'
             AND (
                 YEAR(e.dueDate) < YEAR(:today)
                 OR (YEAR(e.dueDate) = YEAR(:today) AND MONTH(e.dueDate) <= MONTH(:today))
