@@ -43,6 +43,7 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
             WHERE e.loan = :loan
             AND e.isActive = true
             AND e.emiStatus <> 'PAID'
+            AND e.emiStatus <> 'CANCELLED'
             AND e.isDeleted = false
             AND (
                 YEAR(e.dueDate) < YEAR(:today)
