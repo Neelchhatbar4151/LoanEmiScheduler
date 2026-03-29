@@ -9,6 +9,7 @@ import com.tss.LoanEmiScheduler.entity.Transaction;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.PaymentAllocationType;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
+import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.PaymentAllocationRepository;
@@ -28,6 +29,8 @@ public class TransactionService {
     private final EmiRepository emiRepo;
     private final LoanRepository loanRepo;
     private final PaymentAllocationRepository paymentAllocationRepo;
+
+    private final LoanStrategyFactory strategyFactory;
 
     private final TransactionMapper transactionMapper;
 
@@ -52,6 +55,10 @@ public class TransactionService {
 
         BigDecimal remainingAmount = paymentAllocationService.allocate(transaction);
 
+        if(remainingAmount.compareTo(BigDecimal.ZERO) == 0){
+            return "Transaction Successful.";
+        }
+
         BigDecimal extraAmount = BigDecimal.ZERO.max(
                 remainingAmount
                 .subtract(loan.getOutstandingBalance())
@@ -63,6 +70,15 @@ public class TransactionService {
         pa.setAmountAllocated(remainingAmount.subtract(extraAmount));
         pa.setPaymentAllocationType(PaymentAllocationType.PRINCIPAL);
         paymentAllocationRepo.save(pa);
+
+        loan.setOutstandingBalance(
+                loan.getOutstandingBalance()
+                .subtract(remainingAmount.subtract(extraAmount))
+        );
+
+        loanRepo.save(loan);
+
+        strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(loan, lastEmi);
 
         //Notification for Extra amount getting credited in borrower account balance;
 

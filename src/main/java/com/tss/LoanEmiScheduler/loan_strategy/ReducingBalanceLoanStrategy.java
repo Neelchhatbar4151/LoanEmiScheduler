@@ -242,7 +242,10 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
             emi.setInterestComponent(interest);
             emi.setPrincipalComponent(principal);
 
-            emi.setEmiStatus(EmiStatus.PENDING);
+            if(newEmi.compareTo(BigDecimal.ZERO) == 0)
+                emi.setEmiStatus(EmiStatus.CANCELLED);
+            else
+                emi.setEmiStatus(EmiStatus.PENDING);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
 

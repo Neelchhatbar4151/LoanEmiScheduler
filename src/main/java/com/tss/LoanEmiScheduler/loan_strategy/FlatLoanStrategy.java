@@ -251,9 +251,12 @@ public class FlatLoanStrategy implements ILoanStrategy {
             emi.setEmiAmount(newEmiAmount);
             emi.setPrincipalComponent(principal);
             emi.setInterestComponent(interest);
-            emi.setEmiStatus(EmiStatus.PENDING);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
+            if(newEmiAmount.compareTo(BigDecimal.ZERO) == 0)
+                emi.setEmiStatus(EmiStatus.CANCELLED);
+            else
+                emi.setEmiStatus(EmiStatus.PENDING);
 
             newEmis.add(emi);
 
@@ -262,7 +265,6 @@ public class FlatLoanStrategy implements ILoanStrategy {
 
         emiRepo.saveAll(newEmis);
 
-        // 9. UPDATE LOAN VERSION(Optional)
         loanRepo.save(loan);
 
         return newEmis;
