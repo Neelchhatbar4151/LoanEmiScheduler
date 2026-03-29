@@ -49,6 +49,7 @@ public class EmiActionService {
 
         emi.setEmiStatus(EmiStatus.PAID);
         if(emi.getLoan().getTenure().equals(emi.getInstallmentNo())){
+            LoanStatus.ACTIVE.handleAndSet(emi.getLoan(), loanActionService);
             LoanStatus.CLOSED.handleAndSet(emi.getLoan(), loanActionService);
         }
 

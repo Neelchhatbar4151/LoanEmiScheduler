@@ -19,5 +19,5 @@ public class EmiResponseDto {
     private BigDecimal penaltyRemaining;
     private EmiStatus emiStatus;
     private Integer version;
-    private Boolean isActive=false;
+    private Boolean isActive;
 }

@@ -149,7 +149,7 @@ public class FlatLoanStrategy implements ILoanStrategy {
     @Override
     public List<Emi> reAmortize(Loan loan, Emi triggerEmi) {
         if (!emiRepo.existsByLoanId(loan.getId())) {
-            throw new ResourceNotFoundException();
+            throw new ResourceNotFoundException("Schedule");
         }
 
         // 1. Fetch active EMIs (current version)
