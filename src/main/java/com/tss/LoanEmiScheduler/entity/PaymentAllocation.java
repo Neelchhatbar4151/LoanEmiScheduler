@@ -27,7 +27,7 @@ public class PaymentAllocation extends BaseEntity{
     private PaymentAllocationType paymentAllocationType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "emi_id", nullable = false, updatable = false)
+    @JoinColumn(name = "emi_id", updatable = false)
     private Emi emi;
 
     @Column(nullable = false, precision = 19, scale = 2, updatable = false)

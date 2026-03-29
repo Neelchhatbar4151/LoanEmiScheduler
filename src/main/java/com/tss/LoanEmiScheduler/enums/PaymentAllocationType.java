@@ -4,5 +4,6 @@ public enum PaymentAllocationType {
     PENALTY,
     INTEREST,
     PRINCIPAL,
-    PENAL_INTEREST
+    PENAL_INTEREST,
+    LOAN_PENALTY
 }
