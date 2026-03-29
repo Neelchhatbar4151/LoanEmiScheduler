@@ -6,6 +6,7 @@ import com.tss.LoanEmiScheduler.service.BranchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 public class BranchController {
     private final BranchService branchService;
     @PostMapping("/branch")
+    @PreAuthorize("hasRole('OFFICER')")
     public ResponseEntity<BranchResponseDto> save(@RequestBody @Valid BranchRequestDto branchRequestDto){
         BranchResponseDto branchResponseDto = branchService.save(branchRequestDto);
         //throw exp

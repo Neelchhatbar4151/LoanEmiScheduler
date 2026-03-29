@@ -4,17 +4,17 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -26,18 +26,23 @@ public class JwtService {
         secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
     }
 
-    public String generateToken(String identifier) {
+    public String generateToken(Authentication authentication) {
         Map<String, Object> claims = new HashMap<>();
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        claims.put("roles", roles);
+
         return Jwts.builder()
-                .claims()
-                .add(claims)
-                .subject(identifier)
+                .claims(claims)
+                .subject(authentication.getName())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis()+60*60*30))
-                .and()
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
                 .signWith(getKey())
                 .compact();
     }
+
     private SecretKey getKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -73,4 +78,8 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return (List<String>) claims.get("roles");
+    }
 }

@@ -68,15 +68,16 @@ public class AuthService {
         return borrowerMapper.toBorrowerSignResponseDto(borrower);
     }
 
-    public String verify(UserLoginRequestDto loginRequestDto){
-        Authentication authentication =
-                authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                loginRequestDto.getIdentifier(),
-                                loginRequestDto.getPassword())
-                );
-        if(!authentication.isAuthenticated())
-            throw new BadCredentialsException("Bad credentials");
-        return jwtService.generateToken(loginRequestDto.getIdentifier());
+    public String verify(UserLoginRequestDto loginRequestDto) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDto.getIdentifier(),
+                        loginRequestDto.getPassword())
+        );
+
+        if (authentication.isAuthenticated()) {
+            return jwtService.generateToken(authentication);
+        }
+        throw new BadCredentialsException("Bad credentials");
     }
 }
