@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.action_service.EmiActionService;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
 import com.tss.LoanEmiScheduler.enums.PaymentAllocationType;
@@ -22,6 +23,8 @@ public class PaymentAllocationService {
     private final EmiRepository emiRepository;
     private final LoanRepository loanRepository;
     private final PaymentAllocationRepository paymentAllocationRepository;
+
+    private final EmiActionService emiActionService;
 
     @Transactional
     public BigDecimal allocate(Transaction txn) {
@@ -151,11 +154,9 @@ public class PaymentAllocationService {
                 emi.getPenalty().getRemainingAmount().compareTo(BigDecimal.ZERO) == 0;
 
         if (principalDone && interestDone && penalDone && penaltyDone) {
-            emi.setEmiStatus(EmiStatus.PAID);
+            EmiStatus.PAID.handleAndSet(emi, emiActionService);
         } else {
-            emi.setEmiStatus(EmiStatus.PARTIALLY_PAID);
+            EmiStatus.PARTIALLY_PAID.handleAndSet(emi, emiActionService);
         }
-
-        emiRepository.save(emi);
     }
 }

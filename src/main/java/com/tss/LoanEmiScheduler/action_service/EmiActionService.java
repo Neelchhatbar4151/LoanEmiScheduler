@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmiActionService {
     private final EmiRepository emiRepo;
+    private final LoanActionService loanActionService;
 
     private void checkIfCancelled(Emi emi){
         if(emi.getEmiStatus() == EmiStatus.CANCELLED){
@@ -48,7 +49,7 @@ public class EmiActionService {
 
         emi.setEmiStatus(EmiStatus.PAID);
         if(emi.getLoan().getTenure().equals(emi.getInstallmentNo())){
-//            emi.getLoan().setLoanStatus;
+            LoanStatus.CLOSED.handleAndSet(emi.getLoan(), loanActionService);
         }
 
         emiRepo.save(emi);
@@ -61,7 +62,7 @@ public class EmiActionService {
         emi.setEmiStatus(EmiStatus.OVERDUE);
 
         if(emi.getLoan().getLoanStatus() == LoanStatus.ACTIVE){
-//            emi.getLoan().setLoanStatus();
+            LoanStatus.OVERDUE.handleAndSet(emi.getLoan(), loanActionService);
         }
 
         emiRepo.save(emi);
@@ -72,7 +73,7 @@ public class EmiActionService {
 
         emi.setEmiStatus(EmiStatus.CANCELLED);
         if(emi.getInstallmentNo().equals(emi.getLoan().getTenure())){
-//
+            LoanStatus.CLOSED.handleAndSet(emi.getLoan(), loanActionService);
         }
 
         emiRepo.save(emi);
