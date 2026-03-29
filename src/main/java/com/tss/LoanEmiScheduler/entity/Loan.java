@@ -69,7 +69,7 @@ public class Loan extends BaseEntity{
     private LoanType loanType;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column
     private LoanStrategy loanStrategy;
 
     @Column(nullable = false)

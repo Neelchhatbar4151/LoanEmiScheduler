@@ -144,7 +144,7 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
     public List<Emi> reAmortize(Loan loan, Emi triggerEmi) {
 
         if (!emiRepo.existsByLoanId(loan.getId())) {
-            throw new ResourceNotFoundException();
+            throw new ResourceNotFoundException("Schedule");
         }
 
         List<Emi> emis = new ArrayList<>(emiRepo.findByLoanIdAndIsActive(loan.getId(), true));
