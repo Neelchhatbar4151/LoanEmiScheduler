@@ -35,8 +35,9 @@ public class Borrower extends User{
 
     @Column(nullable = false)
     @ColumnDefault("0")
-    private Integer failedLoginAttempts;
+    private Integer failedLoginAttempts=0 ;
 
     @Column(nullable = false)
-    private Boolean accountLocked;
+    @ColumnDefault("false")
+    private Boolean accountLocked = false;
 }
