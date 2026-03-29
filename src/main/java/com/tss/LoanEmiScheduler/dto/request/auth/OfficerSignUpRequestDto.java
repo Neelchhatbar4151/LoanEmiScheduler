@@ -15,34 +15,11 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 public class OfficerSignUpRequestDto extends UserSignUpDto{
-    @NotNull
+    @NotBlank
     private String username;
 
-    @NotNull
+    @NotBlank
     private Long branchId;
-
-    @NotNull
-    @NotBlank
-    private String addressLine1;
-    @NotBlank
-    private String addressLine2;
-
-    @NotNull
-    @NotBlank
-    private String city;
-
-    @NotNull
-    @NotBlank
-    private String state;
-
-    @NotNull
-    @NotBlank
-    private String country;
-
-    @Size(min = 6, max = 10)
-    @NotNull
-    @NotBlank
-    private String postalCode;
 
     private final Role role = Role.OFFICER;
 }

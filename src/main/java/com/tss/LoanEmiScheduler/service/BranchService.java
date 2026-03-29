@@ -10,6 +10,8 @@ import com.tss.LoanEmiScheduler.repository.BranchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BranchService {
@@ -23,5 +25,10 @@ public class BranchService {
 
         branch.setAddress(address);
         return branchMapper.toBranchResponseDto(branchRepository.save(branch));
+    }
+
+    public List<BranchResponseDto> findAll(){
+        return branchRepository.findAll()
+                .stream().map(branchMapper::toBranchResponseDto).toList();
     }
 }

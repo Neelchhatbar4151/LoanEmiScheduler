@@ -1,20 +1,22 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.dto.request.auth.BorrowerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.OfficerSignUpRequestDto;
+import com.tss.LoanEmiScheduler.dto.request.auth.UserLoginRequestDto;
+import com.tss.LoanEmiScheduler.dto.response.auth.BorrowerSignUpResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.auth.OfficerSignUpResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.AddressMapper;
+import com.tss.LoanEmiScheduler.dto_mapper.BorrowerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.OfficerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.UserMapper;
-import com.tss.LoanEmiScheduler.entity.Address;
-import com.tss.LoanEmiScheduler.entity.Branch;
-import com.tss.LoanEmiScheduler.entity.Officer;
-import com.tss.LoanEmiScheduler.entity.User;
-import com.tss.LoanEmiScheduler.repository.AddressRepository;
-import com.tss.LoanEmiScheduler.repository.BranchRepository;
-import com.tss.LoanEmiScheduler.repository.OfficerRepository;
-import com.tss.LoanEmiScheduler.repository.UserRepository;
+import com.tss.LoanEmiScheduler.entity.*;
+import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,9 +27,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final BranchRepository branchRepository;
+    private final BorrowerRepository borrowerRepository;
     private final OfficerMapper officerMapper;
     private final UserMapper userMapper;
+    private final BorrowerMapper borrowerMapper;
     private final AddressMapper addressMapper;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(6);
 
@@ -46,5 +52,31 @@ public class AuthService {
         officer = officerRepository.save(officer);
 
         return officerMapper.toOfficerSignUpResponseDto(officer);
+    }
+
+    @Transactional
+    public BorrowerSignUpResponseDto register(BorrowerSignUpRequestDto borrowerSignUpRequestDto){
+        Borrower borrower = borrowerMapper.toBorrower(borrowerSignUpRequestDto);
+        Address address = addressMapper.toAddress(borrowerSignUpRequestDto);
+
+        address = addressRepository.save(address);
+        borrower.setAddress(address);
+        borrower.setPassword(encoder.encode(borrowerSignUpRequestDto.getPassword()));
+
+        borrower = borrowerRepository.save(borrower);
+
+        return borrowerMapper.toBorrowerSignResponseDto(borrower);
+    }
+
+    public String verify(UserLoginRequestDto loginRequestDto){
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginRequestDto.getIdentifier(),
+                                loginRequestDto.getPassword())
+                );
+        if(!authentication.isAuthenticated())
+            throw new BadCredentialsException("Bad credentials");
+        return jwtService.generateToken(loginRequestDto.getIdentifier());
     }
 }

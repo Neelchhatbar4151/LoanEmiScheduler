@@ -59,4 +59,22 @@ public class UserSignUpDto {
     @NotBlank
     @NotNull
     private String email;
+
+    @NotBlank
+    private String addressLine1;
+    @NotBlank
+    private String addressLine2;
+
+    @NotBlank
+    private String city;
+
+    @NotBlank
+    private String state;
+
+    @NotBlank
+    private String country;
+
+    @Size(min = 6, max = 10)
+    @NotBlank
+    private String postalCode;
 }
