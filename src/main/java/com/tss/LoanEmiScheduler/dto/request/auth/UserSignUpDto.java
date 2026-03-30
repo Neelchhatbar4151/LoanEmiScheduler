@@ -16,19 +16,6 @@ import java.time.LocalDate;
 @Getter
 @SuperBuilder
 public class UserSignUpDto {
-    //for sign up, this is base class
-
-    @NotBlank
-    @NotNull
-    private String firstName;
-
-    @NotBlank
-    private String middleName;
-
-    @NotBlank
-    @NotNull
-    private String lastName;
-
     @Pattern(regexp = "^(?:[6-9]\\d{9}|\\d{6,15})$") //internation support
     @NotBlank
     @NotNull
@@ -43,38 +30,13 @@ public class UserSignUpDto {
     @NotNull
     private String panCard;
 
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$") //8 char, upper, lower, special, digit
-    @NotBlank
-    @NotNull
-    private String password;
-
-    @Past
-    @NotNull
-    private LocalDate dateOfBirth;
-
-    @NotNull
-    private Gender gender;
-
     @Email
     @NotBlank
     @NotNull
     private String email;
 
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$") //8 char, upper, lower, special, digit
     @NotBlank
-    private String addressLine1;
-    @NotBlank
-    private String addressLine2;
-
-    @NotBlank
-    private String city;
-
-    @NotBlank
-    private String state;
-
-    @NotBlank
-    private String country;
-
-    @Size(min = 6, max = 10)
-    @NotBlank
-    private String postalCode;
+    @NotNull
+    private String password;
 }
