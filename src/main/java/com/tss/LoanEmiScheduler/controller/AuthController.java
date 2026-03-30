@@ -1,4 +1,4 @@
-package com.tss.LoanEmiScheduler.controller.auth;
+package com.tss.LoanEmiScheduler.controller;
 
 import com.tss.LoanEmiScheduler.dto.request.auth.BorrowerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.OfficerSignUpRequestDto;

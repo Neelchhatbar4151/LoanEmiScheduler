@@ -29,5 +29,8 @@ public class BorrowerSignUpRequestDto extends UserSignUpDto{
     private BigDecimal debtAmount;
 
     private final Role role = Role.BORROWER;
+
+    @NotNull
+    private Long branchId;
     //annual income and debt amount will fetched from custom api in future, and will be removed from this dto
 }
