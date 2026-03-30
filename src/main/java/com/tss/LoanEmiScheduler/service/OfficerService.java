@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,6 +32,7 @@ public class OfficerService {
     private final EmiMapper emiMapper;
 
     private final LoanActionService loanActionService;
+    private final StrategySuggestionService strategySuggestionService;
 
     private List<LoanResponseDto> getPendingLoans(Officer officer){
 
@@ -40,7 +42,15 @@ public class OfficerService {
 
         List<Loan> pendingLoansForOfficer = loanRepo.findByBranchId(officer.getBranch().getId());
 
-        return loanMapper.toDtoList(pendingLoansForOfficer);
+        List<LoanResponseDto> dtos = new ArrayList<>();
+
+        for (Loan loan : pendingLoansForOfficer) {
+            LoanResponseDto dto = loanMapper.toDto(loan);
+            dto.setLoanStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            dtos.add(dto);
+        }
+
+        return dtos;
     }
 
     private void checkIfEligible(Loan loan, Officer officer){
