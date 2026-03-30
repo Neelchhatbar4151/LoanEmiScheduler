@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class ApproveRequestDto {
-    private Long loanId;
+    private Long loanId;  //use loan number
     private LoanStrategy loanStrategy;
 }

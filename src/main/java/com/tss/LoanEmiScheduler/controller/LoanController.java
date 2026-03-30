@@ -5,6 +5,7 @@ import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.service.LoanService;
+import com.tss.LoanEmiScheduler.service.OfficerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -16,13 +17,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/loans")
 @RequiredArgsConstructor
 public class LoanController {
     private final LoanService loanService;
+    private final OfficerService officerService;
 
     @PreAuthorize("hasRole('BORROWER')")
-    @PostMapping("/loans")
+    @PostMapping("/my-loans")
     public ResponseEntity<LoanApplyResponseDto> applyLoan(@RequestBody@Valid LoanApplyRequestDto loanApplyRequestDto) throws BadRequestException {
         LoanApplyResponseDto loanApplyResponseDto = loanService.applyLoan(loanApplyRequestDto);
         if(loanApplyResponseDto == null)
@@ -31,10 +33,24 @@ public class LoanController {
     }
 
     @PreAuthorize("hasRole('BORROWER')")
-    @GetMapping("/loans")
+    @GetMapping("/my-loans")
     public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower() {
         return ResponseEntity.ok(loanService.findLoanByBorrower());
     }
+
+//    @PreAuthorize("hasRole('OFFICER')")
+//    @GetMapping("/branch-loans")
+//    public ResponseEntity<List<LoanResponseDto>> findLoanByBranch() {
+//        return ResponseEntity.ok(officerService.getPendingLoans();
+//    }
+
+//    @PreAuthorize("hasRole('OFFICER')")
+//    @PatchMapping("/status")
+//    public ResponseEntity<List<LoanResponseDto>> updateLoanStatus() {
+////        return ResponseEntity.ok(officerService.approveLoan());
+//    }
+
+
 
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/loans/{loanNumber}")
