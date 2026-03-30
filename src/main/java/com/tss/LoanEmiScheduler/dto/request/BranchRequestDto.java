@@ -27,7 +27,6 @@ public class BranchRequestDto {
     @NotBlank
     private String branchCode;
 
-
     @NotBlank
     private String addressLine1;
     private String addressLine2;
