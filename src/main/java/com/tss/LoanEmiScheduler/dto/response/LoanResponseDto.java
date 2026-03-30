@@ -28,4 +28,5 @@ public class LoanResponseDto {
     private BigDecimal penaltyAmount;
     private BigDecimal penaltyRemaining;
     private List<EmiResponseDto> emis;
+    private LoanStrategy suggestedStrategy;
 }
