@@ -26,5 +26,7 @@ public interface LoanMapper {
     List<LoanResponseDto> toDtoList(List<Loan> loans);
 
     Loan toLoan(LoanApplyRequestDto loanApplyRequestDto);
+
+    @Mapping(source = "loanStatus", target = "status")
     LoanApplyResponseDto toLoanApplyResponseDto(Loan loan);
 }

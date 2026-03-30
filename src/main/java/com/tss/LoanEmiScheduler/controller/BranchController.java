@@ -16,15 +16,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BranchController {
     private final BranchService branchService;
-    @PostMapping("/branch")
-    @PreAuthorize("hasRole('OFFICER')")
+    @PostMapping("/branches")
+//    @PreAuthorize("hasRole('OFFICER')")
     public ResponseEntity<BranchResponseDto> save(@RequestBody @Valid BranchRequestDto branchRequestDto){
         BranchResponseDto branchResponseDto = branchService.save(branchRequestDto);
         //throw exp
         return ResponseEntity.ok(branchResponseDto);
     }
 
-    @GetMapping("/branch")
+    @GetMapping("/branches")
     public ResponseEntity<List<BranchResponseDto>> findAll(){
         return ResponseEntity.ok(branchService.findAll());
     }

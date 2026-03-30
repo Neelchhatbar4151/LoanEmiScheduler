@@ -58,10 +58,13 @@ public class AuthService {
     public BorrowerSignUpResponseDto register(BorrowerSignUpRequestDto borrowerSignUpRequestDto){
         Borrower borrower = borrowerMapper.toBorrower(borrowerSignUpRequestDto);
         Address address = addressMapper.toAddress(borrowerSignUpRequestDto);
+        Branch branch = branchRepository.findById(borrowerSignUpRequestDto.getBranchId())
+                .orElseThrow();
 
         address = addressRepository.save(address);
         borrower.setAddress(address);
         borrower.setPassword(encoder.encode(borrowerSignUpRequestDto.getPassword()));
+        borrower.setBranch(branch);
 
         borrower = borrowerRepository.save(borrower);
 

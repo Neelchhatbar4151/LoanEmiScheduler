@@ -73,9 +73,42 @@ public class LoanService {
         return loanMapper.toLoanApplyResponseDto(loan);
     }
 
+    public List<LoanResponseDto> findLoanByBorrower(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String borrowerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
 
+        if(!user.getRole().equals(Role.BORROWER)) {
+            throw new SecurityException("Not a borrower.");
+        }
+
+        String accountNumber = ((Borrower) user).getAccountNumber();
+        List<Loan> loanList = loanRepo.findByBorrowerAccountNumber(accountNumber);
+        if(loanList.isEmpty())
+            throw new ResourceNotFoundException("loans");
+        return loanMapper.toDtoList(loanList);
+    }
+
+    public LoanResponseDto findLoanByLoanNumber(String loanNumber) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String identifier = authentication.getName();
+
+        User user = userRepository.findByIdentifier(identifier)
+                .orElseThrow(() -> new ResourceNotFoundException("User"));
+
+        if (!(user instanceof Borrower)) {
+            throw new SecurityException("Access denied: Not a borrower.");
+        }
+
+        String accountNumber = ((Borrower) user).getAccountNumber();
+        Loan loan = loanRepo.findByLoanNumberAndBorrowerAccountNumber(loanNumber, accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Loan not found or access denied"));
+
+        return loanMapper.toDto(loan);
+    }
 
     private String generateLoanNumber(){
         return "";
     }
+
 }

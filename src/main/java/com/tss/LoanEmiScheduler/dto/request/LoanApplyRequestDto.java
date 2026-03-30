@@ -22,6 +22,6 @@ public class LoanApplyRequestDto {
     @Positive
     private BigDecimal principalAmount;
 
-    @NotBlank
+    @NotNull
     private LoanType loanType;
 }
