@@ -7,18 +7,19 @@ import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
-import com.tss.LoanEmiScheduler.entity.Borrower;
-import com.tss.LoanEmiScheduler.entity.Emi;
-import com.tss.LoanEmiScheduler.entity.Loan;
-import com.tss.LoanEmiScheduler.entity.User;
+import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.LoanStrategy;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
+import com.tss.LoanEmiScheduler.repository.GlobalConfigRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,9 +34,13 @@ public class LoanService {
     private final LoanStrategyFactory factory;
     private final LoanRepository loanRepo;
     private final UserRepository userRepository;
+    private final GlobalConfigRepository globalConfigRepository;
 
     private final LoanMapper loanMapper;
     private final EmiMapper emiMapper;
+
+    private static Long loanNumberCounter;
+
 
     public LoanResponseDto simulateSchedule(SimulateScheduleRequestDto request){
         Loan loan = loanRepo.findById(request.getLoanId()).orElseThrow(()-> new ResourceNotFoundException("Loan"));
@@ -108,7 +113,27 @@ public class LoanService {
     }
 
     private String generateLoanNumber(){
-        return "";
+        return "LN"+loanNumberCounter++;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void initLoanNumberCounter(){
+        loanNumberCounter = Long.valueOf(
+                globalConfigRepository
+                        .findByKey(GlobalConstant.LOAN_NUMBER_COUNTER_KEY)
+                        .orElseThrow()
+                        .getValue()
+        );
+    }
+
+    @EventListener(ContextClosedEvent.class)
+    public void runBeforeShutdown() {
+        globalConfigRepository.save(
+                new GlobalConfig(
+                        GlobalConstant.LOAN_NUMBER_COUNTER_KEY,
+                        loanNumberCounter.toString()
+                )
+        );
     }
 
 }
