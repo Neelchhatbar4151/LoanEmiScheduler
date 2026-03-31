@@ -108,7 +108,7 @@ class StepUpLoanStrategyTest {
         when(paymentRepo.findByEmiIdAndPaymentAllocationType(any(), any()))
                 .thenReturn(Collections.emptyList());
 
-        List<Emi> result = strategy.reAmortize(loan, trigger);
+        List<Emi> result = strategy.reAmortize(trigger);
 
         assertNotNull(result);
         verify(loanRepo).save(loan);
@@ -136,7 +136,7 @@ class StepUpLoanStrategyTest {
         when(paymentRepo.findByEmiId(any()))
                 .thenReturn(Collections.emptyList());
 
-        strategy.reAmortize(loan, trigger);
+        strategy.reAmortize(trigger);
 
         assertTrue(loan.getOutstandingBalance().compareTo(new BigDecimal("90000")) > 0);
     }
@@ -156,7 +156,7 @@ class StepUpLoanStrategyTest {
                 .thenReturn(List.of(trigger));
 
         assertThrows(RuntimeException.class,
-                () -> strategy.reAmortize(loan, trigger));
+                () -> strategy.reAmortize(trigger));
     }
 
     // ======================================

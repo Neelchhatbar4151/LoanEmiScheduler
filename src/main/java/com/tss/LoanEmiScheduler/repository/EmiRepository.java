@@ -49,4 +49,20 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
             ORDER BY e.dueDate ASC
             """)
     List<Emi> findEligibleEmisForPayment(Loan loan, LocalDate today);
+
+    @Query("""
+           SELECT e FROM Emi e
+           WHERE e.isActive = true
+           AND e.emiStatus NOT IN ('PAID', 'CANCELLED')
+           AND e.dueDate < :today
+           """)
+    List<Emi> findOverdueEmis(@Param("today") LocalDate today);
+
+    @Query("""
+           SELECT e FROM Emi e
+           WHERE e.isActive = true
+           AND e.emiStatus NOT IN ('PAID', 'CANCELLED')
+           AND e.dueDate = :givenDate
+           """)
+    List<Emi> findUnpaidEmisWithGivenDueDate(@Param("givenDate") LocalDate givenDate);
 }
