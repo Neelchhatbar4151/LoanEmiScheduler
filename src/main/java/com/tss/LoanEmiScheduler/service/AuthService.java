@@ -4,6 +4,7 @@ import com.tss.LoanEmiScheduler.constant.GlobalConstant;
 import com.tss.LoanEmiScheduler.dto.request.auth.BorrowerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.OfficerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.UserLoginRequestDto;
+import com.tss.LoanEmiScheduler.dto.response.UserDetailsFetchDto;
 import com.tss.LoanEmiScheduler.dto.response.auth.BorrowerSignUpResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.auth.OfficerSignUpResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.AddressMapper;
@@ -11,6 +12,7 @@ import com.tss.LoanEmiScheduler.dto_mapper.BorrowerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.OfficerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.UserMapper;
 import com.tss.LoanEmiScheduler.entity.*;
+import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +42,7 @@ public class AuthService {
     private final AddressMapper addressMapper;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final PanValidationService panValidationService;
 
     private static Long accountNumberCounter;
 
@@ -46,15 +50,19 @@ public class AuthService {
 
     @Transactional
     public OfficerSignUpResponseDto register(OfficerSignUpRequestDto officerSignUpDto){
-        Officer officer = officerMapper.toOfficer(officerSignUpDto);
-        Address address = addressMapper.toAddress(officerSignUpDto);
-        Branch branch = branchRepository.findById(officerSignUpDto.getBranchId())
+        UserDetailsFetchDto userDetailsFetchDto = panValidationService.fetchDetailsFromExternalSystem(officerSignUpDto.getPanCard());
+        Officer officer = officerMapper.toOfficer(userDetailsFetchDto, officerSignUpDto);
+        Address address = addressMapper.toAddress(userDetailsFetchDto.getAddressResponseDto());
+        Branch branch = branchRepository.findByBranchCode(officerSignUpDto.getBranchCode())
                 .orElseThrow();
 
         address = addressRepository.save(address);
+        officer.setUsername(officerSignUpDto.getUsername());
         officer.setAddress(address);
         officer.setPassword(encoder.encode(officerSignUpDto.getPassword()));
         officer.setBranch(branch);
+        officer.setRole(Role.OFFICER);
+
 
         officer = officerRepository.save(officer);
 
@@ -63,9 +71,14 @@ public class AuthService {
 
     @Transactional
     public BorrowerSignUpResponseDto register(BorrowerSignUpRequestDto borrowerSignUpRequestDto){
-        Borrower borrower = borrowerMapper.toBorrower(borrowerSignUpRequestDto);
-        Address address = addressMapper.toAddress(borrowerSignUpRequestDto);
-        Branch branch = branchRepository.findById(borrowerSignUpRequestDto.getBranchId())
+        UserDetailsFetchDto userDetailsFetchDto = panValidationService
+                .fetchDetailsFromExternalSystem(
+                        borrowerSignUpRequestDto.getPanCard()
+                );
+
+        Borrower borrower = borrowerMapper.toBorrower(userDetailsFetchDto, borrowerSignUpRequestDto);
+        Address address = addressMapper.toAddress(userDetailsFetchDto.getAddressResponseDto());
+        Branch branch = branchRepository.findByBranchCode(borrowerSignUpRequestDto.getBranchCode())
                 .orElseThrow();
 
         address = addressRepository.save(address);
@@ -73,6 +86,7 @@ public class AuthService {
         borrower.setPassword(encoder.encode(borrowerSignUpRequestDto.getPassword()));
         borrower.setBranch(branch);
         borrower.setAccountNumber(generateAccountNumber());
+        borrower.setRole(Role.BORROWER);
 
         borrower = borrowerRepository.save(borrower);
 

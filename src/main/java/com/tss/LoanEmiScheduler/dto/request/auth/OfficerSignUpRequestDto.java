@@ -18,8 +18,6 @@ public class OfficerSignUpRequestDto extends UserSignUpDto{
     @NotBlank
     private String username;
 
-    @NotNull
-    private Long branchId;
-
-    private final Role role = Role.OFFICER;
+    @NotBlank
+    private String branchCode;
 }

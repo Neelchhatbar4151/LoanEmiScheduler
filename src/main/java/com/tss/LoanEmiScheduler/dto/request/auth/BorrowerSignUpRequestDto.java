@@ -16,21 +16,6 @@ import java.math.BigDecimal;
 @Getter
 @SuperBuilder
 public class BorrowerSignUpRequestDto extends UserSignUpDto{
-//    sign up
     @NotBlank
-    private String accountNumber;  //add method to generate
-
-    @NotNull
-    @PositiveOrZero
-    private BigDecimal annualIncome;
-
-    @NotNull
-    @PositiveOrZero
-    private BigDecimal debtAmount;
-
-    private final Role role = Role.BORROWER;
-
-    @NotNull
-    private Long branchId;
-    //annual income and debt amount will fetched from custom api in future, and will be removed from this dto
+    private String branchCode;
 }
