@@ -15,4 +15,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findByBorrowerAccountNumber(@Param("accountNumber") String accountNumber);
     // Derived query: find loan where number matches AND borrower's account matches
     Optional<Loan> findByLoanNumberAndBorrowerAccountNumber(String loanNumber, String accountNumber);
+    Optional<Loan> findByLoanNumber(String loanNumber);
+
 }
