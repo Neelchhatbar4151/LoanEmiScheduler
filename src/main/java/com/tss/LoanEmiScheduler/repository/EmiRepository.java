@@ -59,10 +59,10 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     List<Emi> findOverdueEmis(@Param("today") LocalDate today);
 
     @Query("""
-           SELECT e FROM EMi e
+           SELECT e FROM Emi e
            WHERE e.isActive = true
            AND e.emiStatus NOT IN ('PAID', 'CANCELLED')
-           AND e.dueDate = givenDate
+           AND e.dueDate = :givenDate
            """)
     List<Emi> findUnpaidEmisWithGivenDueDate(@Param("givenDate") LocalDate givenDate);
 }
