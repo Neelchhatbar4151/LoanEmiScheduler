@@ -3,6 +3,7 @@ package com.tss.LoanEmiScheduler.service;
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
 import com.tss.LoanEmiScheduler.constant.GlobalConstant;
 import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
+import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
@@ -50,21 +51,13 @@ public class OfficerService {
 
         Officer officer = ((Officer) user);
 
-//        if(officer.getBranch() == null){
-//            throw new IllegalStateException("Branch is not set for this officer.");
-//        }
-//        branch id will never be null
-
         List<Loan> pendingLoansForOfficer = loanRepo.findByBranchId(officer.getBranch().getId());
-
         List<LoanResponseDto> dtos = new ArrayList<>();
-
         for (Loan loan : pendingLoansForOfficer) {
             LoanResponseDto dto = loanMapper.toDto(loan);
             dto.setLoanStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             dtos.add(dto);
         }
-
         return dtos;
     }
 
@@ -94,13 +87,12 @@ public class OfficerService {
             throw new SecurityException("Not an officer.");
         }
         Officer officer = ((Officer) user);
-
         Loan loan = loanRepo.findByLoanNumber(request.getLoanNumber()).orElseThrow(() -> new ResourceNotFoundException("Loan"));
-
         checkIfEligible(loan, officer);
 
         //When applying loan application this will get set.
 //        loan.setInterestRate(GlobalConstant.INTEREST_RATE);
+
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
         List<Emi> schedule = strategyFactory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
@@ -115,7 +107,8 @@ public class OfficerService {
         return dto;
     }
 
-    public LoanResponseDto rejectLoan(Long loanId){
+    @Transactional
+    public LoanResponseDto rejectLoan(RejectRequestDto requestDto){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -123,8 +116,8 @@ public class OfficerService {
             throw new SecurityException("Not an officer.");
         }
         Officer officer = ((Officer) user);
-        Loan loan = loanRepo.findById(loanId).orElseThrow(()->new ResourceNotFoundException("Loan"));
-
+        Loan loan = loanRepo.findByLoanNumber(requestDto.getLoanNumber()).orElseThrow(()->new ResourceNotFoundException("Loan"));
+        loan.setOfficer(officer);
         checkIfEligible(loan, officer);
 
         loanActionService.handleRejected(loan);
