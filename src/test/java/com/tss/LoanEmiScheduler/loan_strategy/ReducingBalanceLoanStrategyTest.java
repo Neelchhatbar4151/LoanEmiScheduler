@@ -136,7 +136,7 @@ class ReducingBalanceLoanStrategyTest {
         when(paymentRepo.findByEmiIdAndPaymentAllocationType(any(), any()))
                 .thenReturn(Collections.emptyList());
 
-        List<Emi> result = strategy.reAmortize(loan, trigger);
+        List<Emi> result = strategy.reAmortize(trigger);
 
         assertNotNull(result);
         assertEquals(11, result.size());
@@ -165,7 +165,7 @@ class ReducingBalanceLoanStrategyTest {
         when(paymentRepo.findByEmiIdAndPaymentAllocationType(any(), any()))
                 .thenReturn(Collections.emptyList());
 
-        strategy.reAmortize(loan, trigger);
+        strategy.reAmortize(trigger);
 
         assertTrue(
                 loan.getOutstandingBalance().compareTo(new BigDecimal("90000")) < 0
@@ -194,7 +194,7 @@ class ReducingBalanceLoanStrategyTest {
         when(paymentRepo.findByEmiId(any()))
                 .thenReturn(Collections.emptyList());
 
-        strategy.reAmortize(loan, trigger);
+        strategy.reAmortize(trigger);
 
         assertTrue(
                 loan.getOutstandingBalance().compareTo(new BigDecimal("90000")) > 0
@@ -216,7 +216,7 @@ class ReducingBalanceLoanStrategyTest {
                 .thenReturn(List.of(trigger));
 
         assertThrows(AmortizationNotPossibleException.class,
-                () -> strategy.reAmortize(loan, trigger));
+                () -> strategy.reAmortize(trigger));
     }
 
     // ======================================
