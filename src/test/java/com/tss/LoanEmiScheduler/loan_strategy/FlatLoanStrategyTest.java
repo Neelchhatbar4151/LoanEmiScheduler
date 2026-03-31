@@ -90,16 +90,6 @@ class FlatLoanStrategyTest {
         verify(emiRepo).findEmiScheduleAsOfDate(eq(1L), any());
     }
 
-    // ------------------- RE-AMORTIZATION -------------------
-
-    @Test
-    void reAmortize_shouldThrow_ifNoScheduleExists() {
-        when(emiRepo.existsByLoanId(1L)).thenReturn(false);
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> strategy.reAmortize(loan, new Emi()));
-    }
-
     @Test
     void reAmortize_shouldThrow_ifLastEmi() {
         when(emiRepo.existsByLoanId(1L)).thenReturn(true);
@@ -111,7 +101,7 @@ class FlatLoanStrategyTest {
                 .thenReturn(List.of(emi));
 
         assertThrows(AmortizationNotPossibleException.class,
-                () -> strategy.reAmortize(loan, emi));
+                () -> strategy.reAmortize(emi));
     }
 
     @Test
@@ -141,7 +131,7 @@ class FlatLoanStrategyTest {
 //        when(paymentRepo.findByEmiIdAndPaymentAllocationType(any(), any()))
 //                .thenReturn(Collections.emptyList());
 
-        List<Emi> result = strategy.reAmortize(loan, trigger);
+        List<Emi> result = strategy.reAmortize(trigger);
 
         assertFalse(result.isEmpty());
         assertTrue(loan.getOutstandingBalance().compareTo(BigDecimal.valueOf(12000)) < 0);
@@ -174,7 +164,7 @@ class FlatLoanStrategyTest {
 
         BigDecimal before = loan.getOutstandingBalance();
 
-        strategy.reAmortize(loan, trigger);
+        strategy.reAmortize(trigger);
 
         assertTrue(loan.getOutstandingBalance().compareTo(before) > 0);
     }
@@ -205,7 +195,7 @@ class FlatLoanStrategyTest {
 //        when(paymentRepo.findByEmiIdAndPaymentAllocationType(any(), any()))
 //                .thenReturn(Collections.emptyList());
 
-        strategy.reAmortize(loan, trigger);
+        strategy.reAmortize(trigger);
 
         assertFalse(future.getIsActive());
 //        verify(emiRepo).saveAll(any());

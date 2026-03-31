@@ -78,7 +78,7 @@ public class TransactionService {
 
         loanRepo.save(loan);
 
-        strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(loan, lastEmi);
+        strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(lastEmi);
 
         //Notification for Extra amount getting credited in borrower account balance;
 

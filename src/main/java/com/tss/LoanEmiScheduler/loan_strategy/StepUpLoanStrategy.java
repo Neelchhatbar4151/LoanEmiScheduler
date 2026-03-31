@@ -105,7 +105,9 @@ public class StepUpLoanStrategy implements ILoanStrategy {
 
     // RE-AMORTIZE (STEP ALIGNMENT PRESERVED)
     @Override
-    public List<Emi> reAmortize(Loan loan, Emi triggerEmi) {
+    public List<Emi> reAmortize(Emi triggerEmi) {
+
+        Loan loan = triggerEmi.getLoan();
 
         if (!emiRepo.existsByLoanId(loan.getId())) {
             throw new ResourceNotFoundException("Schedule");
