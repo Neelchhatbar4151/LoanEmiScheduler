@@ -33,6 +33,5 @@ public class Transaction extends BaseEntity{
     private TransactionMode transactionMode;
 
     @Column(updatable = false)
-    @NotBlank
     private String transactionReference;  //null for cash
 }

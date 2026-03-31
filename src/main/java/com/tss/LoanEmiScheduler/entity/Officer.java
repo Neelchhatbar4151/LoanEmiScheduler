@@ -12,6 +12,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class Officer extends User{
     @Column(nullable = false, unique = true, updatable = false)
     private String username;

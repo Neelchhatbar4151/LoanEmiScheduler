@@ -51,7 +51,6 @@ public class User extends BaseEntity{
     private String panCard;
 
     @Column(nullable = false)
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$") //8 char, upper, lower, special, digit
     @NotBlank
     private String password;
 
