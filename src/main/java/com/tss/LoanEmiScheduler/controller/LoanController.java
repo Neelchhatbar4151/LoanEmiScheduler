@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.controller;
 
+import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.LoanApplyRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
@@ -44,11 +45,11 @@ public class LoanController {
 //        return ResponseEntity.ok(officerService.getPendingLoans();
 //    }
 
-//    @PreAuthorize("hasRole('OFFICER')")
-//    @PatchMapping("/status")
-//    public ResponseEntity<List<LoanResponseDto>> updateLoanStatus() {
-////        return ResponseEntity.ok(officerService.approveLoan());
-//    }
+    @PreAuthorize("hasRole('OFFICER')")
+    @PatchMapping("/branch-loans/approve")
+    public ResponseEntity<LoanResponseDto> updateLoanStatus(@RequestBody@Valid ApproveRequestDto requestDto) {
+        return ResponseEntity.ok(officerService.approveLoan(requestDto));
+    }
 
 
 

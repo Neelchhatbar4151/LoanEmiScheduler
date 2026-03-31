@@ -13,6 +13,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
+import org.hibernate.envers.AuditOverride;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -29,16 +32,21 @@ import java.time.LocalDateTime;
         "interest_rate >= 0 AND " +
         "outstanding_balance >= 0 AND " +
         "outstanding_balance <= principal_amount")
+@Audited
+@AuditOverride(forClass = BaseEntity.class, isAudited = true)
 public class Loan extends BaseEntity{
     @Column(unique = true, nullable = false)
     private String loanNumber;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "borrower_id", nullable = false, updatable = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private Borrower borrower;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "officer_id") //null when in applied state
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private Officer officer; //officer who manages this loan
 
     @PastOrPresent
@@ -61,6 +69,7 @@ public class Loan extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private Branch branch;
 
     @Enumerated(EnumType.STRING)
@@ -81,5 +90,6 @@ public class Loan extends BaseEntity{
 
     @OneToOne //One to many?
     @JoinColumn(name = "penalty_id")
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private Penalty penalty;
 }

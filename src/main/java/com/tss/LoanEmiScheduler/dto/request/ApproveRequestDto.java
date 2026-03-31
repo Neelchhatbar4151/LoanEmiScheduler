@@ -1,10 +1,17 @@
 package com.tss.LoanEmiScheduler.dto.request;
 
 import com.tss.LoanEmiScheduler.enums.LoanStrategy;
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
 public class ApproveRequestDto {
-    private Long loanId;  //use loan number
+    @NotBlank
+    private String loanNumber;  //use loan number
+    @NotNull
     private LoanStrategy loanStrategy;
 }
