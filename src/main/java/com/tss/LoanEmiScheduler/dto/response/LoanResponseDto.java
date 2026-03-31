@@ -13,6 +13,7 @@ import java.util.List;
 
 @Data
 public class LoanResponseDto {
+    private String loanNumber;
     private String borrowerAccountNumber;
     private String borrowerAccountName;
     private LocalDateTime disbursementDate;

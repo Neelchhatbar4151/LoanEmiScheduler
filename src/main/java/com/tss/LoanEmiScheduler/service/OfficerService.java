@@ -34,7 +34,7 @@ public class OfficerService {
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
-    private List<LoanResponseDto> getPendingLoans(Officer officer){
+    public List<LoanResponseDto> getPendingLoans(Officer officer){
 
         if(officer.getBranch() == null){
             throw new IllegalStateException("Branch is not set for this officer.");

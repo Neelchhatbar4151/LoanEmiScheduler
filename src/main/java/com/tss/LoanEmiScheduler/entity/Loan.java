@@ -30,12 +30,15 @@ import java.time.LocalDateTime;
         "outstanding_balance >= 0 AND " +
         "outstanding_balance <= principal_amount")
 public class Loan extends BaseEntity{
+    @Column(unique = true, nullable = false)
+    private String loanNumber;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "borrower_id", nullable = false, updatable = false)
     private Borrower borrower;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "officer_id", nullable = false)
+    @JoinColumn(name = "officer_id") //null when in applied state
     private Officer officer; //officer who manages this loan
 
     @PastOrPresent
