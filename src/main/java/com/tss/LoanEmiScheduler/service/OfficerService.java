@@ -109,13 +109,13 @@ public class OfficerService {
         dto.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
-
-        try {
-            notificationService.sendNotification(loan.getBorrower().getEmail(), "Loan Approved", "Congratulations Your loan with Loan Number: " + loan.getLoanNumber() + " has been approved.");
-        }
-        catch(Exception e){
-            throw new RuntimeException(e);
-        }
+//
+//        try {
+//            notificationService.sendNotification(loan.getBorrower().getEmail(), "Loan Approved", "Congratulations Your loan with Loan Number: " + loan.getLoanNumber() + " has been approved.");
+//        }
+//        catch(Exception e){
+//            throw new RuntimeException(e);
+//        }
         return dto;
     }
 
