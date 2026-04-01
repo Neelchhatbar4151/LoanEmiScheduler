@@ -99,11 +99,7 @@ public class AuthService {
                         loginRequestDto.getIdentifier(),
                         loginRequestDto.getPassword())
         );
-
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(authentication);
-        }
-        throw new BadCredentialsException("Bad credentials");
+        return jwtService.generateToken(authentication);
     }
 
     private String generateAccountNumber(){
