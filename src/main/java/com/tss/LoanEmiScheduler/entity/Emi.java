@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -62,22 +63,26 @@ public class Emi extends BaseEntity {
     private EmiStatus emiStatus;
 
     @Column(nullable = false, name = "version")
-    private Integer version;
+    private Integer version = 0;
 
     @Column(nullable = false)
     private Boolean isActive=false;
 
     @Column(nullable = false, name = "penal_interest", precision = 19, scale = 2)
-    private BigDecimal penalInterest;
+    @ColumnDefault("0")
+    private BigDecimal penalInterest = BigDecimal.ZERO;
 
     @Column(nullable = false, name = "remaining_principal_component", precision = 19, scale = 2)
-    private BigDecimal remainingPrincipalComponent;
+    @ColumnDefault("0")
+    private BigDecimal remainingPrincipalComponent = BigDecimal.ZERO;
 
     @Column(nullable = false, name = "remaining_interest_component", precision = 19, scale = 2)
-    private BigDecimal remainingInterestComponent;
+    @ColumnDefault("0")
+    private BigDecimal remainingInterestComponent = BigDecimal.ZERO;
 
     @Column(nullable = false, name = "remaining_penal_interest", precision = 19, scale = 2)
-    private BigDecimal remainingPenalInterest;
+    @ColumnDefault("0")
+    private BigDecimal remainingPenalInterest = BigDecimal.ZERO;
 
 //    @Column(nullable = false)
 //    private LocalDate lastCalculatedDate;
