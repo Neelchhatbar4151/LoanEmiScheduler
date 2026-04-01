@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content">
+
+    <p>Hi <b th:text="${name}"></b>,</p>
+
+    <p style="color:#e74c3c; font-weight:bold;">
+        Your EMI payment is overdue ⚠️
+    </p>
+
+    <div style="background:#fff3f3; padding:15px; border-left:5px solid #e74c3c; border-radius:6px;">
+        <p><b>Amount:</b> ₹<span th:text="${emiAmount}"></span></p>
+        <p><b>Due Date:</b> <span th:text="${dueDate}"></span></p>
+    </div>
+
+    <p>Please pay immediately to avoid additional penal interest.</p>
+
+</div>
+</body>
+</html>

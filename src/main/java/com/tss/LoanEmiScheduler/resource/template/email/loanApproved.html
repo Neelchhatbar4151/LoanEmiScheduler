@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content">
+
+    <p>Hi <b th:text="${name}"></b>,</p>
+
+    <h3 style="color:#27ae60;">🎉 Congratulations!</h3>
+
+    <p>Your loan has been approved.</p>
+
+    <div style="background:#eafaf1; padding:15px; border-radius:8px;">
+        <p><b>Amount:</b> ₹<span th:text="${amount}"></span></p>
+        <p><b>Loan Number:</b> <span th:text="${loanNumber}"></span></p>
+    </div>
+
+    <p>Funds will be disbursed shortly.</p>
+
+</div>
+</body>
+</html>

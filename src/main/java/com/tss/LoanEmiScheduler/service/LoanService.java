@@ -10,6 +10,7 @@ import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.LoanStrategy;
+import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
@@ -26,7 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,14 +43,20 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final EmiMapper emiMapper;
 
-    private static Long loanNumberCounter;
+    private final NotificationService notificationService;
 
+    private static Long loanNumberCounter;
 
     public LoanResponseDto simulateSchedule(SimulateScheduleRequestDto request){
         Loan loan = loanRepo.findById(request.getLoanId()).orElseThrow(()-> new ResourceNotFoundException("Loan"));
         if(request.getLoanStrategy() == LoanStrategy.REJECT){
             throw new UnsupportedOperationException("Can't make Schedule for Reject Loan Strategy.");
         }
+
+        if(loan.getLoanStatus() != LoanStatus.APPLIED){
+            throw new UnsupportedOperationException("This Feature is only supported for Loan Applications");
+        }
+
         List<Emi> schedule = factory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
         LoanResponseDto dto = loanMapper.toDto(loan);
         dto.setEmis(emiMapper.toDtoList(schedule));
@@ -80,6 +89,17 @@ public class LoanService {
         loan.setLoanStatus(LoanStatus.APPLIED);
         loan.setOutstandingBalance(loanApplyRequestDto.getPrincipalAmount());
         loan = loanRepo.save(loan);
+
+        try{
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("amount", loan.getPrincipalAmount());
+            variables.put("name", loan.getBorrower().getFirstName());
+
+            notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPLICATION, variables);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         return loanMapper.toLoanApplyResponseDto(loan);
     }
 
@@ -114,7 +134,7 @@ public class LoanService {
         Loan loan = loanRepo.findByLoanNumberAndBorrowerAccountNumber(loanNumber, accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found or access denied"));
 
-        if(loan.getLoanStatus() == LoanStatus.APPLIED){
+        if(loan.getLoanStatus() == LoanStatus.APPLIED || loan.getLoanStatus() == LoanStatus.REJECTED){
             return loanMapper.toDto(loan);
         }
         return factory.getStrategy(loan.getLoanStrategy()).getEmiSchedule(loan, LocalDate.now());

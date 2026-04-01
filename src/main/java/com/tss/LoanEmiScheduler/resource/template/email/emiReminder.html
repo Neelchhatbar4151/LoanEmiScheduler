@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content">
+
+    <p style="font-size:16px;">Hi <b th:text="${name}"></b>,</p>
+
+    <p>Your EMI is coming up soon.</p>
+
+    <div style="background:#eef5ff; padding:15px; border-radius:8px; margin:20px 0;">
+        <p><b>Amount:</b> ₹<span th:text="${emiAmount}"></span></p>
+        <p><b>Due Date:</b> <span th:text="${dueDate}"></span></p>
+    </div>
+
+    <p>Please make sure you pay before due date to avoid penalties.</p>
+</div>
+</body>
+</html>

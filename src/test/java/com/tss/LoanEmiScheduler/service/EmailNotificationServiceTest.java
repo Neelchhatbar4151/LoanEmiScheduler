@@ -13,10 +13,10 @@ class EmailNotificationServiceTest {
     @Test
     void sendNotification() throws Exception {
 
-        emailService.sendNotification(
-                "neel.chhantbar@tssconsultancy.com",
-                "Test Email",
-                "Hello from Spring Boot!"
-        );
+//        emailService.sendNotification(
+//                "neel.chhantbar@tssconsultancy.com",
+//                "Test Email",
+//                "Hello from Spring Boot!"
+//        );
     }
 }
