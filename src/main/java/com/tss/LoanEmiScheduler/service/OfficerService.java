@@ -40,6 +40,8 @@ public class OfficerService {
     private final LoanMapper loanMapper;
     private final EmiMapper emiMapper;
 
+    private final NotificationService notificationService;
+
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
@@ -108,6 +110,12 @@ public class OfficerService {
 
         loanActionService.handleActive(loan);
 
+        try {
+            notificationService.sendNotification(loan.getBorrower().getEmail(), "Loan Approved", "Congratulations Your loan with Loan Number: " + loan.getLoanNumber() + " has been approved.");
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
         return dto;
     }
 
