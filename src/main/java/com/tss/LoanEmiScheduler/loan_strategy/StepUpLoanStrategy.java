@@ -95,6 +95,9 @@ public class StepUpLoanStrategy implements ILoanStrategy {
             emi.setVersion(1);
             emi.setIsActive(true);
 
+            emi.setRemainingInterestComponent(interest);
+            emi.setRemainingPrincipalComponent(principalComponent);
+
             emis.add(emi);
 
             balance = balance.subtract(principalComponent);
@@ -219,6 +222,9 @@ public class StepUpLoanStrategy implements ILoanStrategy {
                 emi.setEmiStatus(EmiStatus.PENDING);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
+
+            emi.setRemainingInterestComponent(interest);
+            emi.setRemainingPrincipalComponent(principal);
 
             newEmis.add(emi);
 

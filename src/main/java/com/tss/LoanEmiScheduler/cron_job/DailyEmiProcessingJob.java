@@ -4,10 +4,12 @@ import com.tss.LoanEmiScheduler.action_service.EmiActionService;
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
 import com.tss.LoanEmiScheduler.constant.GlobalConstant;
 import com.tss.LoanEmiScheduler.entity.Emi;
+import com.tss.LoanEmiScheduler.entity.Penalty;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
 import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
+import com.tss.LoanEmiScheduler.repository.PenaltyRepository;
 import com.tss.LoanEmiScheduler.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DailyEmiProcessingJob {
     private final EmiRepository emiRepo;
+    private final PenaltyRepository penaltyRepository;
     private final EmiActionService emiActionService;
     private final LoanActionService loanActionService;
     private final NotificationService notificationService;
@@ -51,6 +54,13 @@ public class DailyEmiProcessingJob {
                 catch(Exception e){
                     throw new RuntimeException(e);
                 }
+
+                Penalty penalty = new Penalty();
+                penalty.setPenaltyAmount(GlobalConstant.PENALTY_AMOUNT);
+                penalty.setRemainingAmount(GlobalConstant.PENALTY_AMOUNT);
+                penaltyRepository.save(penalty);
+
+                currEmi.setPenalty(penalty);
 
                 loanStrategyFactory.getStrategy(
                         currEmi.getLoan()
