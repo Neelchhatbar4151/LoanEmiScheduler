@@ -91,7 +91,7 @@ public class LoanService {
         String accountNumber = ((Borrower) user).getAccountNumber();
         List<Loan> loanList = loanRepo.findByBorrowerAccountNumber(accountNumber);
         if(loanList.isEmpty())
-            throw new ResourceNotFoundException("loans");
+            throw new ResourceNotFoundException("Loans");
         return loanMapper.toDtoList(loanList);
     }
 

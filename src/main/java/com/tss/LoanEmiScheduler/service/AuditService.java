@@ -1,6 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
-import com.tss.LoanEmiScheduler.dto.response.LoanAuditDto;
+import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
@@ -23,9 +23,9 @@ public class AuditService {
     private final LoanRepository loanRepository;
     private final LoanMapper loanMapper;
 
-    public List<LoanAuditDto> getLoanHistory(String loanNumber) {
+    public List<LoanResponseDto> getLoanHistory(String loanNumber) {
         AuditReader reader = AuditReaderFactory.get(entityManager);
-        return loanMapper.toAuditDtoList(reader.createQuery()
+        return loanMapper.toDtoList(reader.createQuery()
                 .forRevisionsOfEntity(Loan.class, true, true)
                 .add(AuditEntity.id().eq(loanRepository.findByLoanNumber(loanNumber).orElseThrow().getId()))
                 .getResultList());

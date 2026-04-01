@@ -2,7 +2,6 @@ package com.tss.LoanEmiScheduler.dto_mapper;
 
 import com.tss.LoanEmiScheduler.dto.request.LoanApplyRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
-import com.tss.LoanEmiScheduler.dto.response.LoanAuditDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import org.mapstruct.Mapper;
@@ -30,10 +29,4 @@ public interface LoanMapper {
 
     @Mapping(source = "loanStatus", target = "status")
     LoanApplyResponseDto toLoanApplyResponseDto(Loan loan);
-
-    // MapStruct automatically generates the loop for the List version
-    List<LoanAuditDto> toAuditDtoList(List<Loan> loans);
-
-    // Define how a single snapshot looks
-    LoanAuditDto toAuditDto(Loan loan);
 }
