@@ -41,9 +41,9 @@ public class StrategySuggestionService {
 
         Borrower borrower = loan.getBorrower();
 
-        BigDecimal existingMonthlyDebt = borrower.getDebtAmount();
+        BigDecimal existingMonthlyDebt = borrower.getDebtAmount().multiply(new BigDecimal("0.25"));
 
-        BigDecimal newMonthlyDebt = existingMonthlyDebt.add(baseEmi).multiply(new BigDecimal("0.25"));
+        BigDecimal newMonthlyDebt = existingMonthlyDebt.add(baseEmi);
 
         BigDecimal dtiRatio = newMonthlyDebt.divide(borrower.getAnnualIncome().divide(new BigDecimal("12"), 15, RoundingMode.HALF_UP), 15, RoundingMode.HALF_UP);
 
