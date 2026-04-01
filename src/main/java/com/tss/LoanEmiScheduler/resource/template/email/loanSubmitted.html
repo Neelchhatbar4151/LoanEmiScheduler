@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content">
+
+    <p>Hi <b th:text="${name}"></b>,</p>
+
+    <p>Your loan application has been successfully submitted.</p>
+
+    <div style="background:#f0f8ff; padding:15px; border-radius:8px;">
+        <p><b>Requested Amount:</b> ₹<span th:text="${amount}"></span></p>
+    </div>
+
+    <p>We’ll review your application and update you shortly.</p>
+
+</div>
+</body>
+</html>

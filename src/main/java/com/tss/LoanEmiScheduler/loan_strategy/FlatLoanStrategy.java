@@ -118,6 +118,9 @@ public class FlatLoanStrategy implements ILoanStrategy {
             emi.setVersion(1);
             emi.setIsActive(true);
 
+            emi.setRemainingInterestComponent(monthlyInterest);
+            emi.setRemainingPrincipalComponent(monthlyPrincipal);
+
             emis.add(emi);
         }
 
@@ -254,6 +257,11 @@ public class FlatLoanStrategy implements ILoanStrategy {
             emi.setInterestComponent(interest);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
+
+            emi.setRemainingInterestComponent(interest);
+            emi.setRemainingPrincipalComponent(principal);
+            emi.setDueDate(futureEmis.get(i).getDueDate());
+
             if(newEmiAmount.compareTo(BigDecimal.ZERO) == 0)
                 emi.setEmiStatus(EmiStatus.CANCELLED);
             else

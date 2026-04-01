@@ -4,9 +4,12 @@ import com.tss.LoanEmiScheduler.action_service.EmiActionService;
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
 import com.tss.LoanEmiScheduler.constant.GlobalConstant;
 import com.tss.LoanEmiScheduler.entity.Emi;
+import com.tss.LoanEmiScheduler.entity.Penalty;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
+import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
+import com.tss.LoanEmiScheduler.repository.PenaltyRepository;
 import com.tss.LoanEmiScheduler.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,12 +17,15 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class DailyEmiProcessingJob {
     private final EmiRepository emiRepo;
+    private final PenaltyRepository penaltyRepository;
     private final EmiActionService emiActionService;
     private final LoanActionService loanActionService;
     private final NotificationService notificationService;
@@ -38,11 +44,23 @@ public class DailyEmiProcessingJob {
             long dpd = ChronoUnit.DAYS.between(currEmi.getDueDate(), LocalDate.now());
             if(currEmi.getEmiStatus() != EmiStatus.OVERDUE){
                 try{
-                    notificationService.sendNotification(currEmi.getLoan().getBorrower().getEmail(), "OVERDUE", currEmi.getId()+"");
+                    Map<String, Object> variables = new HashMap<>();
+                    variables.put("emiAmount", currEmi.getEmiAmount());
+                    variables.put("dueDate", currEmi.getDueDate());
+                    variables.put("name", currEmi.getLoan().getBorrower().getFirstName());
+
+                    notificationService.sendNotification(currEmi.getLoan().getBorrower().getEmail(), NotificationType.OVERDUE, variables);
                 }
                 catch(Exception e){
                     throw new RuntimeException(e);
                 }
+
+                Penalty penalty = new Penalty();
+                penalty.setPenaltyAmount(GlobalConstant.PENALTY_AMOUNT);
+                penalty.setRemainingAmount(GlobalConstant.PENALTY_AMOUNT);
+                penaltyRepository.save(penalty);
+
+                currEmi.setPenalty(penalty);
 
                 loanStrategyFactory.getStrategy(
                         currEmi.getLoan()
@@ -80,7 +98,12 @@ public class DailyEmiProcessingJob {
         List<Emi> soonToBeOverdueEmis = emiRepo.findUnpaidEmisWithGivenDueDate(LocalDate.now().plusDays(2));
         for(Emi currEmi : soonToBeOverdueEmis){
             try {
-                notificationService.sendNotification(currEmi.getLoan().getBorrower().getEmail(), "Reminder", "You have only 3 days left before penalty applies to your emi.");
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("emiAmount", currEmi.getEmiAmount());
+                variables.put("dueDate", currEmi.getDueDate());
+                variables.put("name", currEmi.getLoan().getBorrower().getFirstName());
+
+                notificationService.sendNotification(currEmi.getLoan().getBorrower().getEmail(), NotificationType.REMINDER, variables);
             }
             catch(Exception e){
                 throw new RuntimeException(e);
