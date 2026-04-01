@@ -68,6 +68,10 @@ public class LoanService {
             throw new BadCredentialsException("Not a borrower.");
         }
 
+        if(loanRepo.countByBorrower(((Borrower) user).getAccountNumber()) >= 3){
+            throw new IllegalStateException("Can't have more than 3 Ongoing loans.");
+        }
+
         Loan loan = loanMapper.toLoan(loanApplyRequestDto);
         loan.setLoanNumber(generateLoanNumber());
         loan.setBorrower((Borrower) user);
