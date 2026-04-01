@@ -1,6 +1,7 @@
 package com.tss.LoanEmiScheduler.repository;
 
 import com.tss.LoanEmiScheduler.entity.Loan;
+import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +11,7 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
 
-    List<Loan> findByBranchId(Long branchId);
+    List<Loan> findByBranchIdAndLoanStatus(Long branchId, LoanStatus loanStatus);
     @Query("SELECT l FROM Loan l WHERE l.borrower.accountNumber = :accountNumber")
     List<Loan> findByBorrowerAccountNumber(@Param("accountNumber") String accountNumber);
     // Derived query: find loan where number matches AND borrower's account matches
