@@ -56,6 +56,7 @@ public class TransactionService {
         BigDecimal remainingAmount = paymentAllocationService.allocate(transaction);
 
         if(remainingAmount.compareTo(BigDecimal.ZERO) == 0){
+            transactionRepo.save(transaction);
             return "Transaction Successful.";
         }
 
@@ -77,7 +78,7 @@ public class TransactionService {
         );
 
         loanRepo.save(loan);
-
+        transactionRepo.save(transaction);
         strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(lastEmi);
 
         //Notification for Extra amount getting credited in borrower account balance;
