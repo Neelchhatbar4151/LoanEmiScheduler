@@ -2,6 +2,9 @@ package com.tss.LoanEmiScheduler.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,14 +53,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception exception) {
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
         ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred",
+                HttpStatus.UNAUTHORIZED.value(),
+                "Invalid username or password",
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(SignUpFailedException.class)
@@ -78,5 +81,45 @@ public class GlobalExceptionHandler {
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    // Catch all login-related failures (Wrong pass, locked account, etc.)
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthErrors(AuthenticationException ex) {
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        "Authentication failed: " + ex.getMessage(),
+                        System.currentTimeMillis()),
+                HttpStatus.UNAUTHORIZED
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessErrors(AccessDeniedException ex) {
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        HttpStatus.FORBIDDEN.value(),
+                        "Access Denied: You do not have permission. " + ex.getMessage(),
+                        System.currentTimeMillis()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException exception) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                exception.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception exception) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "An unexpected error occurred",
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

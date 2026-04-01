@@ -23,7 +23,7 @@ public class AuthController {
     public ResponseEntity<OfficerSignUpResponseDto> register(@RequestBody@Valid OfficerSignUpRequestDto officerSignUpDto){
         OfficerSignUpResponseDto officerSignUpResponseDto = authService.register(officerSignUpDto);
         if(officerSignUpResponseDto == null){
-            throw new SignUpFailedException("Signup failed for Officer.");
+            throw new SignUpFailedException("Officer.");
         }
         return ResponseEntity.ok(officerSignUpResponseDto);
     }
@@ -31,7 +31,7 @@ public class AuthController {
     public ResponseEntity<BorrowerSignUpResponseDto> register(@RequestBody@Valid BorrowerSignUpRequestDto borrowerSignUpRequestDto){
         BorrowerSignUpResponseDto borrowerSignUpResponseDto = authService.register(borrowerSignUpRequestDto);
         if(borrowerSignUpResponseDto == null)
-            throw new SignUpFailedException("Signup failed for Borrower.");
+            throw new SignUpFailedException("Borrower.");
         return ResponseEntity.ok(borrowerSignUpResponseDto);
     }
 

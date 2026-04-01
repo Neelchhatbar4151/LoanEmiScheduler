@@ -38,6 +38,12 @@ public class LoanController {
         return ResponseEntity.ok(loanService.findLoanByBorrower());
     }
 
+    @PreAuthorize("hasRole('BORROWER')")
+    @GetMapping("/my-loans/{loanNumber}")
+    public ResponseEntity<LoanResponseDto> findLoanByLoanNumber(@PathVariable String loanNumber) {
+        return ResponseEntity.ok(loanService.findLoanByLoanNumber(loanNumber));
+    }
+
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans")
     public ResponseEntity<List<LoanResponseDto>> findLoanByBranch() {
@@ -54,11 +60,5 @@ public class LoanController {
     @PatchMapping("/branch-loans/reject")
     public ResponseEntity<LoanResponseDto> rejectLoan(@RequestBody@Valid RejectRequestDto requestDto) {
         return ResponseEntity.ok(officerService.rejectLoan(requestDto));
-    }
-
-    @PreAuthorize("hasRole('BORROWER')")
-    @GetMapping("/my-loans/{loanNumber}")
-    public ResponseEntity<LoanResponseDto> findLoanByLoanNumber(@PathVariable String loanNumber) {
-        return ResponseEntity.ok(loanService.findLoanByLoanNumber(loanNumber));
     }
 }
