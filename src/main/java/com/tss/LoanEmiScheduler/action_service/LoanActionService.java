@@ -23,7 +23,14 @@ public class LoanActionService {
         }
     }
 
+    private void checkIfRejected(Loan loan){
+        if(loan.getLoanStatus() == LoanStatus.REJECTED){
+            throw new UnsupportedOperationException("Loan is Rejected");
+        }
+    }
+
     public void handleApplied(Loan loan) {
+        checkIfRejected(loan);
         checkIfClosed(loan);
 
         loan.setLoanStatus(LoanStatus.APPLIED);
@@ -44,6 +51,7 @@ public class LoanActionService {
     public void handleOverdue(Loan loan) {
         checkIfClosed(loan);
         checkIfApplied(loan);
+        checkIfRejected(loan);
 
         loan.setLoanStatus(LoanStatus.OVERDUE);
         loanRepo.save(loan);
@@ -51,6 +59,7 @@ public class LoanActionService {
 
     public void handleActive(Loan loan) {
         checkIfClosed(loan);
+        checkIfRejected(loan);
 
         loan.setLoanStatus(LoanStatus.ACTIVE);
         loanRepo.save(loan);
@@ -58,6 +67,7 @@ public class LoanActionService {
 
     public void handleClosed(Loan loan) {
         checkIfApplied(loan);
+        checkIfRejected(loan);
 
         if(loan.getLoanStatus() != LoanStatus.ACTIVE){
             throw new UnsupportedOperationException("You can only close an Active loan.");
@@ -70,6 +80,7 @@ public class LoanActionService {
     public void handleNpa(Loan loan){
         checkIfApplied(loan);
         checkIfClosed(loan);
+        checkIfRejected(loan);
 
         loan.setLoanStatus(LoanStatus.NPA);
         loanRepo.save(loan);
@@ -78,6 +89,7 @@ public class LoanActionService {
     public void handleDelinquent(Loan loan){
         checkIfApplied(loan);
         checkIfClosed(loan);
+        checkIfRejected(loan);
 
         loan.setLoanStatus(LoanStatus.DELINQUENT);
         loanRepo.save(loan);

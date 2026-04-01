@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.repository;
 
+import com.tss.LoanEmiScheduler.entity.Borrower;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,11 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     Optional<Loan> findByLoanNumberAndBorrowerAccountNumber(String loanNumber, String accountNumber);
     Optional<Loan> findByLoanNumber(String loanNumber);
 
+    @Query("""
+           SELECT COUNT(l)
+           FROM Loan l
+           WHERE l.borrower.accountNumber = :accountNumber
+           AND l.loanStatus NOT IN ('CLOSED', 'REJECTED')
+           """)
+    long countByBorrower(@Param("accountNumber") String accountNumber);
 }
