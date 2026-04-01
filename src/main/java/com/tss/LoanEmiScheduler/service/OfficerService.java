@@ -51,11 +51,11 @@ public class OfficerService {
 
         Officer officer = ((Officer) user);
 
-        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchId(officer.getBranch().getId());
+        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), LoanStatus.APPLIED);
         List<LoanResponseDto> dtos = new ArrayList<>();
         for (Loan loan : pendingLoansForOfficer) {
             LoanResponseDto dto = loanMapper.toDto(loan);
-            dto.setLoanStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             dtos.add(dto);
         }
         return dtos;
