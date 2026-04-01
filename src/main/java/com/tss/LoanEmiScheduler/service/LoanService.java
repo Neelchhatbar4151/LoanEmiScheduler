@@ -25,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -109,7 +110,10 @@ public class LoanService {
         Loan loan = loanRepo.findByLoanNumberAndBorrowerAccountNumber(loanNumber, accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found or access denied"));
 
-        return loanMapper.toDto(loan);
+        if(loan.getLoanStatus() == LoanStatus.APPLIED){
+            return loanMapper.toDto(loan);
+        }
+        return factory.getStrategy(loan.getLoanStrategy()).getEmiSchedule(loan, LocalDate.now());
     }
 
     private String generateLoanNumber(){

@@ -12,6 +12,7 @@ import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
+import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -32,6 +33,7 @@ import java.util.List;
 public class OfficerService {
     private final LoanRepository loanRepo;
     private final UserRepository userRepository;
+    private final EmiRepository emiRepository;
 
     private final LoanStrategyFactory strategyFactory;
 
@@ -96,6 +98,8 @@ public class OfficerService {
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
         List<Emi> schedule = strategyFactory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
+
+        emiRepository.saveAll(schedule);
 
         LoanResponseDto dto = loanMapper.toDto(loan);
         dto.setEmis(emiMapper.toDtoList(schedule));
