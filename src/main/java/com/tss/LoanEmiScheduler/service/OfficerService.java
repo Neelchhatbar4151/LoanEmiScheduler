@@ -60,7 +60,8 @@ public class OfficerService {
         List<LoanResponseDto> dtos = new ArrayList<>();
         for (Loan loan : pendingLoansForOfficer) {
             LoanResponseDto dto = loanMapper.toDto(loan);
-            dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             dtos.add(dto);
         }
         return dtos;
