@@ -23,7 +23,6 @@ public class LoanController {
     private final LoanService loanService;
     private final OfficerService officerService;
 
-
     @PreAuthorize("hasRole('BORROWER')")
     @PostMapping("/my-loans")
     public ResponseEntity<LoanApplyResponseDto> applyLoan(
