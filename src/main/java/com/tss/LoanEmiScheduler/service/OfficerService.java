@@ -1,7 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
-import com.tss.LoanEmiScheduler.constant.GlobalConstant;
 import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
@@ -23,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +46,7 @@ public class OfficerService {
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
-    public List<LoanResponseDto> getPendingLoans(){
+    public List<LoanResponseDto> getAllLoans(LoanStatus loanStatus){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -58,7 +56,7 @@ public class OfficerService {
 
         Officer officer = ((Officer) user);
 
-        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), LoanStatus.APPLIED);
+        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus);
         List<LoanResponseDto> dtos = new ArrayList<>();
         for (Loan loan : pendingLoansForOfficer) {
             LoanResponseDto dto = loanMapper.toDto(loan);
