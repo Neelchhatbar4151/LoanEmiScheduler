@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.loan_strategy;
 
+import com.tss.LoanEmiScheduler.action_service.EmiActionService;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
@@ -23,6 +24,8 @@ public class StepUpLoanStrategy implements ILoanStrategy {
     private final EmiRepository emiRepo;
     private final PaymentAllocationRepository paymentAllocationRepo;
     private final LoanRepository loanRepo;
+
+    private final EmiActionService emiActionService;
 
     private final LoanMapper loanMapper;
     private final EmiMapper emiMapper;
@@ -63,7 +66,12 @@ public class StepUpLoanStrategy implements ILoanStrategy {
         BigDecimal baseEmi = findBaseEmiForStepUp(principal, monthlyRate, tenure);
 
         BigDecimal balance = principal;
-        LocalDate startDate = loan.getApprovedAt().toLocalDate();
+
+        LocalDate startDate ;
+        if(loan.getApprovedAt() != null)
+            startDate = loan.getApprovedAt().toLocalDate();
+        else
+            startDate = loan.getCreatedAt().toLocalDate();
 
         for (int i = 0; i < tenure; i++) {
 
@@ -94,6 +102,9 @@ public class StepUpLoanStrategy implements ILoanStrategy {
             emi.setEmiStatus(EmiStatus.PENDING);
             emi.setVersion(1);
             emi.setIsActive(true);
+
+            emi.setRemainingInterestComponent(interest);
+            emi.setRemainingPrincipalComponent(principalComponent);
 
             emis.add(emi);
 
@@ -214,11 +225,14 @@ public class StepUpLoanStrategy implements ILoanStrategy {
             emi.setInterestComponent(interest);
             emi.setPrincipalComponent(principal);
             if(emiAmount.compareTo(BigDecimal.ZERO) == 0)
-                emi.setEmiStatus(EmiStatus.CANCELLED);
+                emiActionService.handleCancelled(emi);
             else
-                emi.setEmiStatus(EmiStatus.PENDING);
+                emiActionService.handlePending(emi);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
+
+            emi.setRemainingInterestComponent(interest);
+            emi.setRemainingPrincipalComponent(principal);
 
             newEmis.add(emi);
 

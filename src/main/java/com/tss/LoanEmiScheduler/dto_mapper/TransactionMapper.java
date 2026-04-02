@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TransactionMapper {
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "loan", source = "loan")
     @Mapping(target = "transactionAmount", source = "dto.transactionAmount")
     @Mapping(target = "transactionMode", source = "dto.transactionMode")

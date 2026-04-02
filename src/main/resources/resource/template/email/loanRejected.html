@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content">
+
+    <p>Hi <b th:text="${name}"></b>,</p>
+
+    <p>We regret to inform you that your loan application was not approved.</p>
+
+    <div style="background:#fdf2f2; padding:15px; border-radius:8px;">
+        <p><b>Rejected: </b> <span th:text="${loanNumber}"></span></p>
+    </div>
+
+    <p>You can reapply after improving eligibility.</p>
+
+</div>
+</body>
+</html>

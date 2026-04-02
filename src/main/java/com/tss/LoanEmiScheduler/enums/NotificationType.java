@@ -5,5 +5,6 @@ public enum NotificationType {
     REJECTION,
     OVERDUE,
     REMINDER,
-    INFO
+    INFO,
+    APPLICATION
 }

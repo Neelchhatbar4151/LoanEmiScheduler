@@ -10,6 +10,7 @@ import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.LoanStrategy;
+import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
@@ -25,7 +26,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -39,14 +43,17 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final EmiMapper emiMapper;
 
-    private static Long loanNumberCounter;
+    private final NotificationService notificationService;
 
+    private static Long loanNumberCounter;
 
     public LoanResponseDto simulateSchedule(SimulateScheduleRequestDto request){
         Loan loan = loanRepo.findById(request.getLoanId()).orElseThrow(()-> new ResourceNotFoundException("Loan"));
-        if(request.getLoanStrategy() == LoanStrategy.REJECT){
-            throw new UnsupportedOperationException("Can't make Schedule for Reject Loan Strategy.");
+
+        if(loan.getLoanStatus() != LoanStatus.APPLIED){
+            throw new UnsupportedOperationException("This Feature is only supported for Loan Applications");
         }
+
         List<Emi> schedule = factory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
         LoanResponseDto dto = loanMapper.toDto(loan);
         dto.setEmis(emiMapper.toDtoList(schedule));
@@ -67,6 +74,10 @@ public class LoanService {
             throw new BadCredentialsException("Not a borrower.");
         }
 
+        if(loanRepo.countByBorrower(((Borrower) user).getAccountNumber()) >= 3){
+            throw new IllegalStateException("Can't have more than 3 Ongoing loans.");
+        }
+
         Loan loan = loanMapper.toLoan(loanApplyRequestDto);
         loan.setLoanNumber(generateLoanNumber());
         loan.setBorrower((Borrower) user);
@@ -75,22 +86,33 @@ public class LoanService {
         loan.setLoanStatus(LoanStatus.APPLIED);
         loan.setOutstandingBalance(loanApplyRequestDto.getPrincipalAmount());
         loan = loanRepo.save(loan);
+
+        try{
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("amount", loan.getPrincipalAmount());
+            variables.put("name", loan.getBorrower().getFirstName());
+
+            notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPLICATION, variables);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         return loanMapper.toLoanApplyResponseDto(loan);
     }
 
-    public List<LoanResponseDto> findLoanByBorrower(){
+    public List<LoanResponseDto> findLoanByBorrower() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
 
-        if(!user.getRole().equals(Role.BORROWER)) {
+        if (!user.getRole().equals(Role.BORROWER)) {
             throw new SecurityException("Not a borrower.");
         }
 
         String accountNumber = ((Borrower) user).getAccountNumber();
         List<Loan> loanList = loanRepo.findByBorrowerAccountNumber(accountNumber);
-        if(loanList.isEmpty())
-            throw new ResourceNotFoundException("loans");
+        if (loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
         return loanMapper.toDtoList(loanList);
     }
 
@@ -107,9 +129,44 @@ public class LoanService {
 
         String accountNumber = ((Borrower) user).getAccountNumber();
         Loan loan = loanRepo.findByLoanNumberAndBorrowerAccountNumber(loanNumber, accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Loan not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Loan"));
 
-        return loanMapper.toDto(loan);
+        if(loan.getLoanStatus() == LoanStatus.APPLIED || loan.getLoanStatus() == LoanStatus.REJECTED){
+            return loanMapper.toDto(loan);
+        }
+        return factory.getStrategy(loan.getLoanStrategy()).getEmiSchedule(loan, LocalDate.now());
+    }
+
+    public List<LoanResponseDto> findLoanByBorrowerWithStatus(LoanStatus loanStatus){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String borrowerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
+
+        if(!user.getRole().equals(Role.BORROWER)) {
+            throw new SecurityException("Not a borrower.");
+        }
+
+        String accountNumber = ((Borrower) user).getAccountNumber();
+        List<Loan> loanList = loanRepo.findByLoanStatusAndBorrowerAccountNumber(loanStatus, accountNumber);
+        if(loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
+        return loanMapper.toDtoList(loanList);
+    }
+
+    public List<LoanResponseDto> findLoanByBranchId(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String officerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
+
+        if(!user.getRole().equals(Role.OFFICER)) {
+            throw new SecurityException("Not a officer.");
+        }
+
+        Long branchId = ((Officer) user).getBranch().getId();
+        List<Loan> loanList = loanRepo.findByBranchId(branchId);
+        if(loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
+        return loanMapper.toDtoList(loanList);
     }
 
     private String generateLoanNumber(){
