@@ -41,4 +41,5 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
            AND l.loanStatus NOT IN ('CLOSED', 'REJECTED')
            """)
     long countByBorrower(@Param("accountNumber") String accountNumber);
+    List<Loan> findByOfficerId(Long officerId);
 }

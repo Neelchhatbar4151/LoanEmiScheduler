@@ -62,6 +62,12 @@ public class LoanController {
     }
 
     @PreAuthorize("hasRole('OFFICER')")
+    @GetMapping("/branch-loans/my-loans")
+    public ResponseEntity<List<LoanResponseDto>> findByOfficer(){
+        return ResponseEntity.ok(officerService.getAllLoansByOfficer());
+    }
+
+    @PreAuthorize("hasRole('OFFICER')")
     @PatchMapping("/branch-loans/approve")
     public ResponseEntity<LoanResponseDto> approveLoan(@RequestBody@Valid ApproveRequestDto requestDto) {
         return ResponseEntity.ok(officerService.approveLoan(requestDto));

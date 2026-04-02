@@ -67,6 +67,26 @@ public class OfficerService {
         return dtos;
     }
 
+    public List<LoanResponseDto> getAllLoansByOfficer(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String officerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
+        if(!user.getRole().equals(Role.OFFICER)) {
+            throw new SecurityException("Not an officer.");
+        }
+
+        Officer officer = ((Officer) user);
+
+        List<Loan> allLoans = loanRepo.findByOfficerId(officer.getId());
+        List<LoanResponseDto> dtos = new ArrayList<>();
+        for (Loan loan : allLoans) {
+            LoanResponseDto dto = loanMapper.toDto(loan);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+
     private void checkIfEligible(Loan loan, Officer officer){
         if(loan.getLoanStatus() != LoanStatus.APPLIED){
             throw new UnsupportedOperationException("Loan is not in Application stage.");
