@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.loan_strategy;
 
+import com.tss.LoanEmiScheduler.action_service.EmiActionService;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
@@ -35,6 +36,8 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
     private final EmiRepository emiRepo;
     private final PaymentAllocationRepository paymentAllocationRepo;
     private final LoanRepository loanRepo;
+
+    private final EmiActionService emiActionService;
 
     private final LoanMapper loanMapper;
     private final EmiMapper emiMapper;
@@ -72,7 +75,11 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
 
         BigDecimal balance = principal;
 
-        LocalDate startDate = loan.getApprovedAt().toLocalDate();
+        LocalDate startDate ;
+        if(loan.getApprovedAt() != null)
+            startDate = loan.getApprovedAt().toLocalDate();
+        else
+            startDate = loan.getCreatedAt().toLocalDate();
 
         for (int i = 1; i <= tenure; i++) {
 
@@ -247,9 +254,9 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
             emi.setPrincipalComponent(principal);
 
             if(newEmi.compareTo(BigDecimal.ZERO) == 0)
-                emi.setEmiStatus(EmiStatus.CANCELLED);
+                emiActionService.handleCancelled(emi);
             else
-                emi.setEmiStatus(EmiStatus.PENDING);
+                emiActionService.handlePending(emi);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
 

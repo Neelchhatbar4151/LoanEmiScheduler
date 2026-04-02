@@ -33,7 +33,11 @@ public class PaymentAllocationService {
         Loan loan = txn.getLoan();
 
         List<Emi> emis = emiRepository
-                .findEligibleEmisForPayment(loan, LocalDate.now());
+                .findOverDueEmisByLoan(loan, LocalDate.now());
+        List<Emi> latestEmi = emiRepository
+                .findCurrentEmiByLoan(loan.getId(), LocalDate.now());
+
+        emis.addAll(latestEmi);
 
         for (Emi emi : emis) {
 

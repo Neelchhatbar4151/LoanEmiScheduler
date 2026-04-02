@@ -141,6 +141,9 @@ public class OfficerService {
         Loan loan = loanRepo.findByLoanNumber(request.getLoanNumber()).orElseThrow(() -> new ResourceNotFoundException("Loan"));
         checkIfEligible(loan, officer);
 
+        //When applying loan application this will get set.
+//        loan.setInterestRate(GlobalConstant.INTEREST_RATE);
+
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
         List<Emi> schedule = strategyFactory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
@@ -193,6 +196,7 @@ public class OfficerService {
         catch(Exception e){
             throw new RuntimeException(e);
         }
+
         return loanMapper.toDto(loan);
     }
 }

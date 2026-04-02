@@ -49,9 +49,6 @@ public class LoanService {
 
     public LoanResponseDto simulateSchedule(SimulateScheduleRequestDto request){
         Loan loan = loanRepo.findById(request.getLoanId()).orElseThrow(()-> new ResourceNotFoundException("Loan"));
-        if(request.getLoanStrategy() == LoanStrategy.REJECT){
-            throw new UnsupportedOperationException("Can't make Schedule for Reject Loan Strategy.");
-        }
 
         if(loan.getLoanStatus() != LoanStatus.APPLIED){
             throw new UnsupportedOperationException("This Feature is only supported for Loan Applications");
