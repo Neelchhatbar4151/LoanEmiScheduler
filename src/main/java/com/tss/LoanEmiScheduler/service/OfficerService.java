@@ -8,6 +8,7 @@ import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
+import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
@@ -24,7 +25,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -153,13 +156,18 @@ public class OfficerService {
         dto.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
-//
-//        try {
-//            notificationService.sendNotification(loan.getBorrower().getEmail(), "Loan Approved", "Congratulations Your loan with Loan Number: " + loan.getLoanNumber() + " has been approved.");
-//        }
-//        catch(Exception e){
-//            throw new RuntimeException(e);
-//        }
+
+        try {
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("amount", loan.getPrincipalAmount());
+            variables.put("loanNumber", loan.getLoanNumber());
+            variables.put("name", loan.getBorrower().getFirstName());
+
+            notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPROVAL, variables);
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
         return dto;
     }
 
@@ -177,6 +185,17 @@ public class OfficerService {
         checkIfEligible(loan, officer);
 
         loanActionService.handleRejected(loan);
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("loanNumber", loan.getLoanNumber());
+        variables.put("name", loan.getBorrower().getFirstName());
+
+        try {
+            notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.REJECTION, variables);
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
 
         return loanMapper.toDto(loan);
     }
