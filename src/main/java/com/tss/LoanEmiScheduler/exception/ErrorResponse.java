@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ErrorResponse {
     private int status;
-    private String msg;
+    private String message;
     private long timestamp;
 }
