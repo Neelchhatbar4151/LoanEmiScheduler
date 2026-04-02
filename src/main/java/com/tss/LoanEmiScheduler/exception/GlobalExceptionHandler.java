@@ -48,17 +48,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException exception){
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
-                exception.getMessage(),
+                exception.getMessage()+" not found.",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException exception) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
-                "Invalid username or password",
+                "Invalid username or password.",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException exception) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                exception.getMessage(),
+                "Method Argument Invalid",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -89,7 +89,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(
                 new ErrorResponse(
                         HttpStatus.UNAUTHORIZED.value(),
-                        "Authentication failed: " + ex.getMessage(),
+                        "Authentication failed.",
                         System.currentTimeMillis()),
                 HttpStatus.UNAUTHORIZED
         );
@@ -100,18 +100,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(
                 new ErrorResponse(
                         HttpStatus.NOT_FOUND.value(),
-                        "URI not found: " + ex.getMessage(),
+                        "URI not found.",
                         System.currentTimeMillis()),
                 HttpStatus.NOT_FOUND
         );
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessErrors(AccessDeniedException ex) {
+    public ResponseEntity<ErrorResponse> handleAccessErrors(AccessDeniedException exception) {
         return new ResponseEntity<>(
                 new ErrorResponse(
                         HttpStatus.FORBIDDEN.value(),
-                        "Access Denied: You do not have permission. " + ex.getMessage(),
+                        "Access Denied: You do not have permission. ",
                         System.currentTimeMillis()),
                 HttpStatus.FORBIDDEN
         );
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException exception) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                exception.getMessage(),
+                "Bad request from client.",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -130,7 +130,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception exception) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred",
+                "An unexpected error occurred.",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);

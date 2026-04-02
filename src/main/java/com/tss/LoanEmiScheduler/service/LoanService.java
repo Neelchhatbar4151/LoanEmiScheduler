@@ -132,7 +132,7 @@ public class LoanService {
 
         String accountNumber = ((Borrower) user).getAccountNumber();
         Loan loan = loanRepo.findByLoanNumberAndBorrowerAccountNumber(loanNumber, accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Loan not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Loan"));
 
         if(loan.getLoanStatus() == LoanStatus.APPLIED || loan.getLoanStatus() == LoanStatus.REJECTED){
             return loanMapper.toDto(loan);
