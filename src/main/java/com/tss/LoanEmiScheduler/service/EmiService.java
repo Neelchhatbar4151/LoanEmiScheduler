@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.dto.request.EmiRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.EmiResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.entity.Borrower;
@@ -32,7 +33,8 @@ public class EmiService {
         return emiMapper.toDto(emi);
     }
 
-    public List<EmiResponseDto> getFutureEmiForLoan(String loanNumber){
+    public List<EmiResponseDto> getFutureEmiForLoan(EmiRequestDto emiRequestDto){
+        String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -54,7 +56,8 @@ public class EmiService {
     }
 
 
-    public EmiResponseDto getNextEmiForLoan(String loanNumber){
+    public EmiResponseDto getNextEmiForLoan(EmiRequestDto emiRequestDto){
+        String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -75,7 +78,8 @@ public class EmiService {
         return emiMapper.toDto(emi);
     }
 
-    public List<EmiResponseDto> getPastEmiForLoan(String loanNumber){
+    public List<EmiResponseDto> getPastEmiForLoan(EmiRequestDto emiRequestDto){
+        String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
