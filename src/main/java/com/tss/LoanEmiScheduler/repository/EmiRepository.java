@@ -8,11 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Repository
 public interface EmiRepository extends JpaRepository<Emi, Long> {
     @Query("""
             SELECT e
@@ -69,6 +71,7 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
 
 //    future emis
     List<Emi> findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
+    Emi findFirstEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
 
 //    past emis
     List<Emi> findEmiByLoanIdAndDueDateBeforeOrderByDueDate(Long loanId, @FutureOrPresent LocalDate dueDateBefore);
