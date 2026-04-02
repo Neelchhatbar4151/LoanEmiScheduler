@@ -41,13 +41,24 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT e FROM Emi e
-               WHERE e.loan = :loan
-               AND e.isActive = true
-               AND e.emiStatus NOT IN ('PAID', 'CANCELLED')
-               AND e.dueDate >= :today
-               ORDER BY e.dueDate ASC
+            WHERE e.loan = :loan
+            AND e.isActive = true
+            AND e.emiStatus NOT IN ('PAID', 'CANCELLED')
+            AND e.dueDate < :today
+            ORDER BY e.dueDate ASC
             """)
-    List<Emi> findEligibleEmisForPayment(@Param("loan") Loan loan, @Param("today") LocalDate today);
+    List<Emi> findOverDueEmisByLoan(@Param("loan") Loan loan, @Param("today") LocalDate today);
+
+    @Query(value = """
+            SELECT * FROM emis e
+            WHERE e.loan_id = :loanId
+            AND e.is_active = true
+            AND e.emi_status NOT IN ('CANCELLED')
+            AND e.due_date >= :today
+            ORDER BY e.due_date ASC
+            LIMIT 1
+           """, nativeQuery = true)
+    List<Emi> findCurrentEmiByLoan(@Param("loanId") Long loanId, @Param("today") LocalDate today);
 
     @Query("""
            SELECT e FROM Emi e

@@ -57,16 +57,21 @@ public class TransactionService {
         }
 
         List<Emi> emis = emiRepo
-                .findEligibleEmisForPayment(loan, LocalDate.now());
+                .findOverDueEmisByLoan(loan, LocalDate.now());
+        List<Emi> latestEmi = emiRepo
+                .findCurrentEmiByLoan(loan.getId(), LocalDate.now());
+
+        emis.addAll(latestEmi);
 
         Emi lastEmi = emis.get(emis.size()-1);
 
         Transaction transaction = transactionMapper.toEntity(txn, loan);
 
+        transactionRepo.save(transaction);
+
         BigDecimal remainingAmount = paymentAllocationService.allocate(transaction);
 
         if(remainingAmount.compareTo(BigDecimal.ZERO) == 0){
-            transactionRepo.save(transaction);
             return "Transaction Successful.";
         }
 
@@ -88,7 +93,6 @@ public class TransactionService {
         );
 
         loanRepo.save(loan);
-        transactionRepo.save(transaction);
         strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(lastEmi);
 
         //Notification for Extra amount getting credited in borrower account balance;
