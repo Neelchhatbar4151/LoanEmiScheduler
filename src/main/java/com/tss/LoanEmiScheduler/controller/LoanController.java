@@ -68,6 +68,14 @@ public class LoanController {
     }
 
     @PreAuthorize("hasRole('OFFICER')")
+    @GetMapping("/branch-loans/{accountNumber}")
+    public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower(
+            @PathVariable String accountNumber
+    ){
+        return ResponseEntity.ok(officerService.findLoanByBorrower(accountNumber));
+    }
+
+    @PreAuthorize("hasRole('OFFICER')")
     @PatchMapping("/branch-loans/approve")
     public ResponseEntity<LoanResponseDto> approveLoan(@RequestBody@Valid ApproveRequestDto requestDto) {
         return ResponseEntity.ok(officerService.approveLoan(requestDto));

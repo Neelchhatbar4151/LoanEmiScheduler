@@ -30,6 +30,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 //    to officer for checking
     Optional<Loan> findByLoanNumber(String loanNumber);
 
+    List<Loan> findByBranchIdAndBorrowerId(Long branchId, Long borrowerId);
+
 //    officer view all loans of branch
     List<Loan> findByBranchId(Long branchId);
 

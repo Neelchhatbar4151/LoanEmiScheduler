@@ -12,6 +12,7 @@ import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
+import com.tss.LoanEmiScheduler.repository.BorrowerRepository;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
@@ -35,6 +36,7 @@ public class OfficerService {
     private final LoanRepository loanRepo;
     private final UserRepository userRepository;
     private final EmiRepository emiRepository;
+    private final BorrowerRepository borrowerRepository;
 
     private final LoanStrategyFactory strategyFactory;
 
@@ -86,6 +88,29 @@ public class OfficerService {
         return dtos;
     }
 
+    public List<LoanResponseDto> findLoanByBorrower(String  accountNumber) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String borrowerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
+
+        if (!user.getRole().equals(Role.OFFICER)) {
+            throw new SecurityException("Not a officer.");
+        }
+
+        Long branchId = ((Officer) user).getBranch().getId();
+        Long borrowerId = borrowerRepository.findByAccountNumber(accountNumber).orElseThrow().getId();
+        List<Loan> loanList = loanRepo.findByBranchIdAndBorrowerId(branchId, borrowerId);
+        List<LoanResponseDto> dtos = new ArrayList<>();
+        for (Loan loan : loanList) {
+            LoanResponseDto dto = loanMapper.toDto(loan);
+            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            dtos.add(dto);
+        }
+        if (loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
+        return dtos;
+    }
 
     private void checkIfEligible(Loan loan, Officer officer){
         if(loan.getLoanStatus() != LoanStatus.APPLIED){
