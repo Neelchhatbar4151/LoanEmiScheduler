@@ -103,18 +103,18 @@ public class LoanService {
         return loanMapper.toLoanApplyResponseDto(loan);
     }
 
-    public List<LoanResponseDto> findLoanByBorrower(){
+    public List<LoanResponseDto> findLoanByBorrower() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
 
-        if(!user.getRole().equals(Role.BORROWER)) {
+        if (!user.getRole().equals(Role.BORROWER)) {
             throw new SecurityException("Not a borrower.");
         }
 
         String accountNumber = ((Borrower) user).getAccountNumber();
         List<Loan> loanList = loanRepo.findByBorrowerAccountNumber(accountNumber);
-        if(loanList.isEmpty())
+        if (loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
         return loanMapper.toDtoList(loanList);
     }
@@ -132,12 +132,44 @@ public class LoanService {
 
         String accountNumber = ((Borrower) user).getAccountNumber();
         Loan loan = loanRepo.findByLoanNumberAndBorrowerAccountNumber(loanNumber, accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Loan not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Loan"));
 
         if(loan.getLoanStatus() == LoanStatus.APPLIED || loan.getLoanStatus() == LoanStatus.REJECTED){
             return loanMapper.toDto(loan);
         }
         return factory.getStrategy(loan.getLoanStrategy()).getEmiSchedule(loan, LocalDate.now());
+    }
+
+    public List<LoanResponseDto> findLoanByBorrowerWithStatus(LoanStatus loanStatus){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String borrowerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
+
+        if(!user.getRole().equals(Role.BORROWER)) {
+            throw new SecurityException("Not a borrower.");
+        }
+
+        String accountNumber = ((Borrower) user).getAccountNumber();
+        List<Loan> loanList = loanRepo.findByLoanStatusAndBorrowerAccountNumber(loanStatus, accountNumber);
+        if(loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
+        return loanMapper.toDtoList(loanList);
+    }
+
+    public List<LoanResponseDto> findLoanByBranchId(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String officerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
+
+        if(!user.getRole().equals(Role.OFFICER)) {
+            throw new SecurityException("Not a officer.");
+        }
+
+        Long branchId = ((Officer) user).getBranch().getId();
+        List<Loan> loanList = loanRepo.findByBranchId(branchId);
+        if(loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
+        return loanMapper.toDtoList(loanList);
     }
 
     private String generateLoanNumber(){

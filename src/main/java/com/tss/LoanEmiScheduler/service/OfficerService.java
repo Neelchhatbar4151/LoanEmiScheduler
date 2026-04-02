@@ -1,7 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
-import com.tss.LoanEmiScheduler.constant.GlobalConstant;
 import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
@@ -12,6 +11,7 @@ import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
+import com.tss.LoanEmiScheduler.repository.BorrowerRepository;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +33,7 @@ public class OfficerService {
     private final LoanRepository loanRepo;
     private final UserRepository userRepository;
     private final EmiRepository emiRepository;
+    private final BorrowerRepository borrowerRepository;
 
     private final LoanStrategyFactory strategyFactory;
 
@@ -45,7 +45,7 @@ public class OfficerService {
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
-    public List<LoanResponseDto> getPendingLoans(){
+    public List<LoanResponseDto> getAllLoans(LoanStatus loanStatus){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -55,13 +55,57 @@ public class OfficerService {
 
         Officer officer = ((Officer) user);
 
-        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), LoanStatus.APPLIED);
+        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus);
         List<LoanResponseDto> dtos = new ArrayList<>();
         for (Loan loan : pendingLoansForOfficer) {
             LoanResponseDto dto = loanMapper.toDto(loan);
-            dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             dtos.add(dto);
         }
+        return dtos;
+    }
+
+    public List<LoanResponseDto> getAllLoansByOfficer(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String officerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
+        if(!user.getRole().equals(Role.OFFICER)) {
+            throw new SecurityException("Not an officer.");
+        }
+
+        Officer officer = ((Officer) user);
+
+        List<Loan> allLoans = loanRepo.findByOfficerId(officer.getId());
+        List<LoanResponseDto> dtos = new ArrayList<>();
+        for (Loan loan : allLoans) {
+            LoanResponseDto dto = loanMapper.toDto(loan);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+    public List<LoanResponseDto> findLoanByBorrower(String  accountNumber) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String borrowerIdentifier = authentication.getName();
+        User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
+
+        if (!user.getRole().equals(Role.OFFICER)) {
+            throw new SecurityException("Not a officer.");
+        }
+
+        Long branchId = ((Officer) user).getBranch().getId();
+        Long borrowerId = borrowerRepository.findByAccountNumber(accountNumber).orElseThrow().getId();
+        List<Loan> loanList = loanRepo.findByBranchIdAndBorrowerId(branchId, borrowerId);
+        List<LoanResponseDto> dtos = new ArrayList<>();
+        for (Loan loan : loanList) {
+            LoanResponseDto dto = loanMapper.toDto(loan);
+            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            dtos.add(dto);
+        }
+        if (loanList.isEmpty())
+            throw new ResourceNotFoundException("Loans");
         return dtos;
     }
 

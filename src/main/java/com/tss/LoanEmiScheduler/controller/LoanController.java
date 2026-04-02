@@ -5,11 +5,11 @@ import com.tss.LoanEmiScheduler.dto.request.LoanApplyRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
+import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.service.LoanService;
 import com.tss.LoanEmiScheduler.service.OfficerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,16 +25,21 @@ public class LoanController {
 
     @PreAuthorize("hasRole('BORROWER')")
     @PostMapping("/my-loans")
-    public ResponseEntity<LoanApplyResponseDto> applyLoan(@RequestBody@Valid LoanApplyRequestDto loanApplyRequestDto) throws BadRequestException {
+    public ResponseEntity<LoanApplyResponseDto> applyLoan(
+            @RequestBody@Valid LoanApplyRequestDto loanApplyRequestDto
+    ){
         LoanApplyResponseDto loanApplyResponseDto = loanService.applyLoan(loanApplyRequestDto);
-        if(loanApplyResponseDto == null)
-            throw new BadRequestException("Loan application failed.");
         return ResponseEntity.ok(loanApplyResponseDto);
     }
 
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/my-loans")
-    public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower() {
+    public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower(
+            @RequestParam(required = false)LoanStatus status
+    ) {
+        if(status != null){
+            return ResponseEntity.ok(loanService.findLoanByBorrowerWithStatus(status));
+        }
         return ResponseEntity.ok(loanService.findLoanByBorrower());
     }
 
@@ -46,8 +51,27 @@ public class LoanController {
 
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans")
-    public ResponseEntity<List<LoanResponseDto>> findLoanByBranch() {
-        return ResponseEntity.ok(officerService.getPendingLoans());
+    public ResponseEntity<List<LoanResponseDto>> findLoanByBranch(
+            @RequestParam(required = false)LoanStatus status
+    ) {
+        if(status == null){
+            return ResponseEntity.ok(loanService.findLoanByBranchId());
+        }
+        return ResponseEntity.ok(officerService.getAllLoans(status));
+    }
+
+    @PreAuthorize("hasRole('OFFICER')")
+    @GetMapping("/branch-loans/my-loans")
+    public ResponseEntity<List<LoanResponseDto>> findByOfficer(){
+        return ResponseEntity.ok(officerService.getAllLoansByOfficer());
+    }
+
+    @PreAuthorize("hasRole('OFFICER')")
+    @GetMapping("/branch-loans/{accountNumber}")
+    public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower(
+            @PathVariable String accountNumber
+    ){
+        return ResponseEntity.ok(officerService.findLoanByBorrower(accountNumber));
     }
 
     @PreAuthorize("hasRole('OFFICER')")

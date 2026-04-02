@@ -13,5 +13,5 @@ import lombok.Setter;
 public class RejectRequestDto {
     @NotBlank
     private String loanNumber;
-    private String rejectionMsg;
+    private String rejectionMessage;
 }
