@@ -12,6 +12,7 @@ import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.PenaltyRepository;
 import com.tss.LoanEmiScheduler.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ public class DailyEmiProcessingJob {
 
     private final LoanStrategyFactory loanStrategyFactory;
 
+    @Async
     public void run(){
         checkOverdue();
         checkSoonToBeOverdue();
