@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class BorrowerSignUpResponseDto extends UserSignUpDto {
+public class BorrowerSignUpResponseDto{
     //response after succ sign up
     private String accountNumber;
     private String email;
