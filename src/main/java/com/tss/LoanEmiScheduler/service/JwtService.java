@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +16,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.SECURITY;
 
+@Slf4j
 @Service
 public class JwtService {
 
@@ -28,12 +31,12 @@ public class JwtService {
 
     public String generateToken(Authentication authentication) {
         Map<String, Object> claims = new HashMap<>();
+        log.info("{} Jwt: Generate token for authentication {}", SECURITY, authentication.getName());
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-
         claims.put("roles", roles);
-
+        log.info("{} Jwt: Extract roles: {} and claims: {} for {}", SECURITY, roles, claims, authentication.getName());
         return Jwts.builder()
                 .claims(claims)
                 .subject(authentication.getName())

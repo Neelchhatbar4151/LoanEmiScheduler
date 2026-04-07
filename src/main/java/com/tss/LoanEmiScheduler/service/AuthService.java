@@ -18,6 +18,7 @@ import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
@@ -28,7 +29,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.AUTH;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -52,6 +56,13 @@ public class AuthService {
 
     @Transactional
     public OfficerSignUpResponseDto register(OfficerSignUpRequestDto officerSignUpDto){
+        log.info("{} Register: for officer {} in branch {} with pan {} using email {}",
+                AUTH,
+                officerSignUpDto.getUsername(),
+                officerSignUpDto.getBranchCode(),
+                officerSignUpDto.getPanCard(),
+                officerSignUpDto.getEmail()
+        );
         UserDetailsFetchDto userDetailsFetchDto = panValidationService.fetchDetailsFromExternalSystem(officerSignUpDto.getPanCard());
         if(userDetailsFetchDto == null) {
             throw new ResourceNotFoundException(officerSignUpDto.getPanCard());
@@ -68,14 +79,24 @@ public class AuthService {
         officer.setBranch(branch);
         officer.setRole(Role.OFFICER);
 
-
         officer = officerRepository.save(officer);
-
+        log.info("{} Register: officer registered with username {} for branch code {} with address id {}",
+                AUTH,
+                officerSignUpDto.getUsername(),
+                branch.getBranchCode(),
+                address.getId()
+        );
         return officerMapper.toOfficerSignUpResponseDto(officer);
     }
 
     @Transactional
     public BorrowerSignUpResponseDto register(BorrowerSignUpRequestDto borrowerSignUpRequestDto){
+        log.info("{} Register: for borrower in branch {} with pan {} using email {}",
+                AUTH,
+                borrowerSignUpRequestDto.getBranchCode(),
+                borrowerSignUpRequestDto.getPanCard(),
+                borrowerSignUpRequestDto.getEmail()
+        );
         UserDetailsFetchDto userDetailsFetchDto = panValidationService
                 .fetchDetailsFromExternalSystem(
                         borrowerSignUpRequestDto.getPanCard()
@@ -94,15 +115,28 @@ public class AuthService {
         borrower.setRole(Role.BORROWER);
 
         borrower = borrowerRepository.save(borrower);
-
+        log.info("{} Register: borrower registered with account number {} for branch code {} with address id {}",
+                AUTH,
+                borrower.getAccountNumber(),
+                branch.getBranchCode(),
+                address.getId()
+        );
         return borrowerMapper.toBorrowerSignResponseDto(borrower);
     }
 
     public String verify(UserLoginRequestDto loginRequestDto) {
+        log.info("{} Login: for user {}",
+                AUTH,
+                loginRequestDto.getIdentifier()
+        );
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequestDto.getIdentifier(),
                         loginRequestDto.getPassword())
+        );
+        log.info("{} Login: authentication done for user {}",
+                AUTH,
+                loginRequestDto.getIdentifier()
         );
         return jwtService.generateToken(authentication);
     }

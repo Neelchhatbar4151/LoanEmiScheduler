@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,12 +18,15 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.SECURITY;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     @Lazy
@@ -33,6 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
+        log.info("{} Filter: Initialized", SECURITY);
 
         String authHeader = request.getHeader("Authorization");
         String token = null;
@@ -41,6 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             identifier = jwtService.extractIdentifier(token);
+            log.info("{} Filter: For user {}", SECURITY, identifier);
         }
 
         if (identifier != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -56,15 +62,15 @@ public class JwtFilter extends OncePerRequestFilter {
                                 null,
                                 authorities
                         );
-
                 authenticationToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
-
+                log.info("{} Filter: Authentication token configured for user {} with roles {}", SECURITY, identifier, roles);
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }else {
+                log.warn("{} Filter: Token invalid for user {}", SECURITY, identifier);
             }
         }
         filterChain.doFilter(request, response);
     }
-
 }
