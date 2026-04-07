@@ -13,6 +13,7 @@ public class PanValidationService {
     private final RestClient restClient = RestClient.create("http://localhost:8081");
 
     public UserDetailsFetchDto fetchDetailsFromExternalSystem(String panCard) {
+
         return restClient.get()
                 .uri("/api/population-details/{panCard}", panCard)
                 .retrieve()

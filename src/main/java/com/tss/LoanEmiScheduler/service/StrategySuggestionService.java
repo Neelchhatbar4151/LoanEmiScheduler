@@ -4,17 +4,19 @@ import com.tss.LoanEmiScheduler.entity.Borrower;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import com.tss.LoanEmiScheduler.enums.LoanStrategy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.LOAN;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StrategySuggestionService {
 
     private BigDecimal generateBaseEmi(Loan loan){
-
         BigDecimal principal = loan.getPrincipalAmount();
         BigDecimal annualRate = loan.getInterestRate();
         int tenureMonths = loan.getTenure();
@@ -28,7 +30,13 @@ public class StrategySuggestionService {
         BigDecimal totalInterest = principal.multiply(rate).multiply(tenureYears);
 
         BigDecimal totalAmount = principal.add(totalInterest);
-
+        log.info("{} Schedule: Generate base EMI for loan {} on rate {} for years {} on total interest {} for total amount {}",
+                LOAN,
+                loan.getId(),
+                rate,
+                tenureYears,
+                totalInterest,
+                totalAmount);
         return totalAmount.divide(
                 BigDecimal.valueOf(tenureMonths),
                 4,
@@ -47,6 +55,7 @@ public class StrategySuggestionService {
 
         BigDecimal dtiRatio = newMonthlyDebt.divide(borrower.getAnnualIncome().divide(new BigDecimal("12"), 15, RoundingMode.HALF_UP), 15, RoundingMode.HALF_UP);
 
+        log.info("{} Strategy: Suggestion for loan {} dti ration {}", LOAN, loan.getId(), dtiRatio);
         if(dtiRatio.compareTo(new BigDecimal("0.2")) < 0){
             return LoanStrategy.FLAT;
         }

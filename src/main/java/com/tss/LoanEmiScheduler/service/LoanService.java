@@ -18,6 +18,7 @@ import com.tss.LoanEmiScheduler.repository.GlobalConfigRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
@@ -30,7 +31,9 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.LOAN;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LoanService {
@@ -70,9 +73,11 @@ public class LoanService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
+
         if(!user.getRole().equals(Role.BORROWER)){
             throw new BadCredentialsException("Not a borrower.");
         }
+        log.info("{} Apply: Loan {} by borrower id: {}", LOAN, loanApplyRequestDto, user.getId());
 
         if(loanRepo.countByBorrower(((Borrower) user).getAccountNumber()) >= 3){
             throw new IllegalStateException("Can't have more than 3 Ongoing loans.");
@@ -86,6 +91,7 @@ public class LoanService {
         loan.setLoanStatus(LoanStatus.APPLIED);
         loan.setOutstandingBalance(loanApplyRequestDto.getPrincipalAmount());
         loan = loanRepo.save(loan);
+        log.info("{} Apply: Saved loan id {} and loan number {} by borrower id: {}", LOAN, loan.getId(), loan.getLoanNumber(), user.getId());
 
         try{
             Map<String, Object> variables = new HashMap<>();
@@ -93,6 +99,7 @@ public class LoanService {
             variables.put("name", loan.getBorrower().getFirstName());
 
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPLICATION, variables);
+            log.info("{} Email: Sent to {} for loan number {}", LOAN, borrowerIdentifier, loan.getLoanNumber());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

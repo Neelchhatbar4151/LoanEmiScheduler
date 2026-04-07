@@ -2,10 +2,7 @@ package com.tss.LoanEmiScheduler.dto.request.auth;
 
 import com.tss.LoanEmiScheduler.enums.Gender;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
@@ -38,5 +35,6 @@ public class UserSignUpDto {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$") //8 char, upper, lower, special, digit
     @NotBlank
     @NotNull
+    @ToString.Exclude
     private String password;
 }

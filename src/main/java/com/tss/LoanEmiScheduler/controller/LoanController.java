@@ -10,15 +10,18 @@ import com.tss.LoanEmiScheduler.service.LoanService;
 import com.tss.LoanEmiScheduler.service.OfficerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.LOAN;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/loans")
 @RequiredArgsConstructor
+@Slf4j
 public class LoanController {
     private final LoanService loanService;
     private final OfficerService officerService;
@@ -28,7 +31,15 @@ public class LoanController {
     public ResponseEntity<LoanApplyResponseDto> applyLoan(
             @RequestBody@Valid LoanApplyRequestDto loanApplyRequestDto
     ){
+        log.info("{} Apply: Initializing application for {}", LOAN, loanApplyRequestDto);
         LoanApplyResponseDto loanApplyResponseDto = loanService.applyLoan(loanApplyRequestDto);
+        log.info("{} Apply: Success for application {} of amount {} for {} months of {} loan type",
+                LOAN,
+                loanApplyResponseDto.getLoanNumber(),
+                loanApplyResponseDto.getPrincipalAmount(),
+                loanApplyResponseDto.getTenure(),
+                loanApplyResponseDto.getLoanType()
+        );
         return ResponseEntity.ok(loanApplyResponseDto);
     }
 
@@ -77,12 +88,18 @@ public class LoanController {
     @PreAuthorize("hasRole('OFFICER')")
     @PatchMapping("/branch-loans/approve")
     public ResponseEntity<LoanResponseDto> approveLoan(@RequestBody@Valid ApproveRequestDto requestDto) {
-        return ResponseEntity.ok(officerService.approveLoan(requestDto));
+        log.info("{} Approve: Initializing approval process for loan {}", LOAN, requestDto.getLoanNumber());
+        LoanResponseDto loanResponseDto = officerService.approveLoan(requestDto);
+        log.info("{} Approve: Success for approve for loan {}", LOAN, loanResponseDto.getLoanNumber());
+        return ResponseEntity.ok(loanResponseDto);
     }
 
     @PreAuthorize("hasRole('OFFICER')")
     @PatchMapping("/branch-loans/reject")
     public ResponseEntity<LoanResponseDto> rejectLoan(@RequestBody@Valid RejectRequestDto requestDto) {
-        return ResponseEntity.ok(officerService.rejectLoan(requestDto));
+        log.info("{} Reject: Initializing rejection process for loan {}", LOAN, requestDto.getLoanNumber());
+        LoanResponseDto loanResponseDto = officerService.rejectLoan(requestDto);
+        log.info("{} Reject: Success for reject for loan {}", LOAN, loanResponseDto.getLoanNumber());
+        return ResponseEntity.ok(loanResponseDto);
     }
 }

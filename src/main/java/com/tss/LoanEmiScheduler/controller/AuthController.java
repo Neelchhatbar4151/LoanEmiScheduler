@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.controller;
 
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.AUTH;
 import com.tss.LoanEmiScheduler.dto.request.auth.BorrowerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.OfficerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.UserLoginRequestDto;
@@ -9,34 +10,39 @@ import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.angus.mail.imap.protocol.IMAPProtocol;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/signup/officer")
     public ResponseEntity<OfficerSignUpResponseDto> register(@RequestBody@Valid OfficerSignUpRequestDto officerSignUpDto){
+        log.info("{} Signup: Initiating registration for Officer: {}", AUTH, officerSignUpDto.getEmail());
         OfficerSignUpResponseDto officerSignUpResponseDto = authService.register(officerSignUpDto);
-        if(officerSignUpResponseDto == null){
-            throw new SignUpFailedException("Officer.");
-        }
+        log.info("[AUTH] Signup: SUCCESS for Officer: {}", officerSignUpDto.getEmail());
         return ResponseEntity.ok(officerSignUpResponseDto);
     }
     @PostMapping("/signup/borrower")
     public ResponseEntity<BorrowerSignUpResponseDto> register(@RequestBody@Valid BorrowerSignUpRequestDto borrowerSignUpRequestDto){
+        log.info("{} Signup: Initiating registration for Borrower: {}", AUTH, borrowerSignUpRequestDto.getEmail());
         BorrowerSignUpResponseDto borrowerSignUpResponseDto = authService.register(borrowerSignUpRequestDto);
-        if(borrowerSignUpResponseDto == null)
-            throw new SignUpFailedException("Borrower.");
+        log.info("{} Signup: SUCCESS for Borrower: {}", AUTH,borrowerSignUpResponseDto.getEmail());
         return ResponseEntity.ok(borrowerSignUpResponseDto);
     }
 
     @PostMapping("/login")
     public String login(@RequestBody UserLoginRequestDto userLoginRequestDto){
-        return authService.verify(userLoginRequestDto);
+        log.info("{} Login: Initiating log in for user {}", AUTH, userLoginRequestDto.getIdentifier());
+        String message = authService.verify(userLoginRequestDto);
+        log.info("{} Login: SUCCESS for user {}", AUTH, userLoginRequestDto.getIdentifier());
+        return message;
     }
 }

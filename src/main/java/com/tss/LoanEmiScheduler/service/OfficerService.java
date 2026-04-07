@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.LOAN;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -141,6 +142,14 @@ public class OfficerService {
         Loan loan = loanRepo.findByLoanNumber(request.getLoanNumber()).orElseThrow(() -> new ResourceNotFoundException("Loan"));
         checkIfEligible(loan, officer);
 
+        log.info("{} Approve: Approving loan number {} applied by borrower number {} for branch code {} approve by officer username {}",
+                LOAN,
+                loan.getLoanNumber(),
+                loan.getBorrower().getAccountNumber(),
+                loan.getBranch().getBranchCode(),
+                officer.getUsername()
+        );
+
         //When applying loan application this will get set.
 //        loan.setInterestRate(GlobalConstant.INTEREST_RATE);
 
@@ -150,12 +159,15 @@ public class OfficerService {
 
         emiRepository.saveAll(schedule);
 
+        log.info("{}[EMI] Emi schedule: created for loan id {} schedule: {}", LOAN, loan.getId(), schedule);
+
         LoanResponseDto dto = loanMapper.toDto(loan);
         dto.setEmis(emiMapper.toDtoList(schedule));
         loan.setLoanStrategy(request.getLoanStrategy());
         dto.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
+        log.info("{} Approve: Loan {} approved with with strategy {}", LOAN, loan.getId(), loan.getLoanStrategy());
 
         try {
             Map<String, Object> variables = new HashMap<>();
@@ -164,6 +176,7 @@ public class OfficerService {
             variables.put("name", loan.getBorrower().getFirstName());
 
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPROVAL, variables);
+            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LOAN, user.getId(), NotificationType.APPROVAL, loan.getId());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -184,7 +197,15 @@ public class OfficerService {
         loan.setOfficer(officer);
         checkIfEligible(loan, officer);
 
+        log.info("{} Reject: Rejecting loan number {} applied by borrower number {} for branch code {} reject by officer username {}",
+                LOAN,
+                loan.getLoanNumber(),
+                loan.getBorrower().getAccountNumber(),
+                loan.getBranch().getBranchCode(),
+                officer.getUsername()
+        );
         loanActionService.handleRejected(loan);
+
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("loanNumber", loan.getLoanNumber());
@@ -192,6 +213,7 @@ public class OfficerService {
 
         try {
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.REJECTION, variables);
+            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LOAN, user.getId(), NotificationType.REJECTION, loan.getId());
         }
         catch(Exception e){
             throw new RuntimeException(e);
