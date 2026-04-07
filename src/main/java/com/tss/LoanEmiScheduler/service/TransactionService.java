@@ -11,9 +11,11 @@ import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import static com.tss.LoanEmiScheduler.constant.GlobalConstant.TRANSACTION;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,6 +24,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionService {
     private final TransactionRepository transactionRepo;
     private final EmiRepository emiRepo;
@@ -49,6 +52,12 @@ public class TransactionService {
                 txn.getLoanNumber(),
                 borrower.getAccountNumber()
         ).orElseThrow(()->new ResourceNotFoundException("Loan"));
+        log.info("{} Pay: Emi amount for loan {} by borrower {} of amount {}",
+                TRANSACTION,
+                loan.getId(),
+                borrower.getId(),
+                txn.getTransactionAmount()
+        );
 
         if( loan.getLoanStatus() == LoanStatus.CLOSED  ||
             loan.getLoanStatus() == LoanStatus.APPLIED ||
@@ -72,6 +81,12 @@ public class TransactionService {
         BigDecimal remainingAmount = paymentAllocationService.allocate(transaction);
 
         if(remainingAmount.compareTo(BigDecimal.ZERO) == 0){
+            log.info("{} Success: On payment of amount {}  for loan {} by borrower {}",
+                    TRANSACTION,
+                    txn.getTransactionAmount(),
+                    loan.getId(),
+                    borrower.getId()
+            );
             return "Transaction Successful.";
         }
 
@@ -96,7 +111,14 @@ public class TransactionService {
         strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(lastEmi);
 
         //Notification for Extra amount getting credited in borrower account balance;
-
+        String amt = extraAmount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        log.info("{} Success: On payment of amount {}  for loan {} by borrower {}, extra payment made of amount {}",
+                TRANSACTION,
+                txn.getTransactionAmount(),
+                loan.getId(),
+                borrower.getId(),
+                amt
+        );
         return "Transaction Successful, Extra Payment: " + extraAmount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 }

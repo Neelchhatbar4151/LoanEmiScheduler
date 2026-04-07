@@ -16,4 +16,6 @@ public class GlobalConstant {
     public static final String TRANSACTION = "[TRANSACTION]";
     public static final String SYSTEM = "[SYSTEM]";
     public static final String SECURITY = "[SECURITY]";
+    public static final String EMAIL = "[EMAIL]";
+    public static final String EMI = "[EMI]";
 }

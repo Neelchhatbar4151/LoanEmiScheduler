@@ -14,7 +14,6 @@ import com.tss.LoanEmiScheduler.dto_mapper.UserMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
-import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +22,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import static com.tss.LoanEmiScheduler.constant.GlobalConstant.AUTH;
@@ -101,6 +98,12 @@ public class AuthService {
                 .fetchDetailsFromExternalSystem(
                         borrowerSignUpRequestDto.getPanCard()
                 );
+        log.info("{} Register: User fetched from gov DB: {} {} {}",
+                AUTH,
+                userDetailsFetchDto.getFirstName(),
+                userDetailsFetchDto.getMiddleName(),
+                userDetailsFetchDto.getLastName()
+        );
 
         Borrower borrower = borrowerMapper.toBorrower(userDetailsFetchDto, borrowerSignUpRequestDto);
         Address address = addressMapper.toAddress(userDetailsFetchDto.getAddressResponseDto());
