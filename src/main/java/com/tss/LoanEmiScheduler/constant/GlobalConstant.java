@@ -11,4 +11,9 @@ public class GlobalConstant {
 
 //    LOGGING CONSTANTS
     public static final String AUTH = "[AUTH]";
+    public static final String BRANCH = "[BRANCH]";
+    public static final String LOAN = "[LOAN]";
+    public static final String TRANSACTION = "[TRANSACTION]";
+
+
 }
