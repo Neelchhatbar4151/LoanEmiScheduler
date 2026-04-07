@@ -27,8 +27,12 @@
 
     <logger name="com.tss.LoanEmiScheduler" level="INFO"/>
 
-    <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="com.tss.LoanEmiScheduler" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>

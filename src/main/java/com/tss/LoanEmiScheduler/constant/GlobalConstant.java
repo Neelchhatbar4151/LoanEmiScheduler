@@ -8,4 +8,7 @@ public class GlobalConstant {
     public static final String ACCOUNT_NUMBER_COUNTER_KEY = "account_number_counter";
     public static final String LOAN_NUMBER_COUNTER_KEY = "loan_number_counter";
     public static final BigDecimal PENALTY_AMOUNT = new BigDecimal("500");
+
+//    LOGGING CONSTANTS
+    public static final String AUTH = "[AUTH]";
 }

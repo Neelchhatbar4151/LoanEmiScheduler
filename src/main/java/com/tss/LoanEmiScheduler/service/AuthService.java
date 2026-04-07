@@ -13,6 +13,8 @@ import com.tss.LoanEmiScheduler.dto_mapper.OfficerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.UserMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.Role;
+import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
+import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +53,9 @@ public class AuthService {
     @Transactional
     public OfficerSignUpResponseDto register(OfficerSignUpRequestDto officerSignUpDto){
         UserDetailsFetchDto userDetailsFetchDto = panValidationService.fetchDetailsFromExternalSystem(officerSignUpDto.getPanCard());
+        if(userDetailsFetchDto == null) {
+            throw new ResourceNotFoundException(officerSignUpDto.getPanCard());
+        }
         Officer officer = officerMapper.toOfficer(userDetailsFetchDto, officerSignUpDto);
         Address address = addressMapper.toAddress(userDetailsFetchDto.getAddressResponseDto());
         Branch branch = branchRepository.findByBranchCode(officerSignUpDto.getBranchCode())
