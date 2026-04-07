@@ -91,7 +91,7 @@ public class EmailNotificationService implements NotificationService{
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(html, true);
-        log.info("{} Created: MimeMessageHelper object created with receiver: {}, subject: {}, text: {}", EMAIL, to, subject, html);
+        log.info("{} Created: MimeMessageHelper object created with receiver: {}, subject: {}", EMAIL, to, subject);
         mailSender.send(message);
     }
 }
