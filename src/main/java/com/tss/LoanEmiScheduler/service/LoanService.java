@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -107,7 +109,7 @@ public class LoanService {
         return loanMapper.toLoanApplyResponseDto(loan);
     }
 
-    public List<LoanResponseDto> findLoanByBorrower() {
+    public Page<LoanResponseDto> findLoanByBorrower(Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -117,10 +119,10 @@ public class LoanService {
         }
 
         String accountNumber = ((Borrower) user).getAccountNumber();
-        List<Loan> loanList = loanRepo.findByBorrowerAccountNumber(accountNumber);
+        Page<Loan> loanList = loanRepo.findByBorrowerAccountNumber(accountNumber, pageable);
         if (loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
-        return loanMapper.toDtoList(loanList);
+        return loanList.map(loanMapper::toDto);
     }
 
     public LoanResponseDto findLoanByLoanNumber(String loanNumber) {
@@ -144,7 +146,7 @@ public class LoanService {
         return factory.getStrategy(loan.getLoanStrategy()).getEmiSchedule(loan, LocalDate.now());
     }
 
-    public List<LoanResponseDto> findLoanByBorrowerWithStatus(LoanStatus loanStatus){
+    public Page<LoanResponseDto> findLoanByBorrowerWithStatus(LoanStatus loanStatus, Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -154,13 +156,13 @@ public class LoanService {
         }
 
         String accountNumber = ((Borrower) user).getAccountNumber();
-        List<Loan> loanList = loanRepo.findByLoanStatusAndBorrowerAccountNumber(loanStatus, accountNumber);
+        Page<Loan> loanList = loanRepo.findByLoanStatusAndBorrowerAccountNumber(loanStatus, accountNumber, pageable);
         if(loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
-        return loanMapper.toDtoList(loanList);
+        return loanList.map(loanMapper::toDto);
     }
 
-    public List<LoanResponseDto> findLoanByBranchId(){
+    public Page<LoanResponseDto> findLoanByBranchId(Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -170,10 +172,10 @@ public class LoanService {
         }
 
         Long branchId = ((Officer) user).getBranch().getId();
-        List<Loan> loanList = loanRepo.findByBranchId(branchId);
+        Page<Loan> loanList = loanRepo.findByBranchId(branchId, pageable);
         if(loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
-        return loanMapper.toDtoList(loanList);
+        return loanList.map(loanMapper::toDto);
     }
 
     private String generateLoanNumber(){
