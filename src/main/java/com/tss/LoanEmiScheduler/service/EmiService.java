@@ -13,6 +13,8 @@ import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,7 @@ public class EmiService {
         return emiMapper.toDto(emi);
     }
 
-    public List<EmiResponseDto> getFutureEmiForLoan(EmiRequestDto emiRequestDto){
+    public Page<EmiResponseDto> getFutureEmiForLoan(EmiRequestDto emiRequestDto, Pageable pageable){
         String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
@@ -43,16 +45,16 @@ public class EmiService {
             throw new SecurityException("Not a borrower.");
         }
         Loan loan = loanRepository.findByLoanNumber(loanNumber).orElseThrow();
-        List<Emi> emiList = null;
+        Page<Emi> emiList = null;
         if(loan.getBorrower()
                 .getId()
                 .equals(user.getId())
         ){
-             emiList = emiRepo.findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(loan.getId(), LocalDate.now());
+             emiList = emiRepo.findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(loan.getId(), LocalDate.now(), pageable);
         }
-        if(emiList == null)
+        if(emiList==null || emiList.isEmpty())
             throw new ResourceNotFoundException("Emi");
-        return emiMapper.toDtoList(emiList);
+        return emiList.map(emiMapper::toDto);
     }
 
 

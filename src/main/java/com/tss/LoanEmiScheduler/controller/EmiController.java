@@ -15,6 +15,7 @@ import java.util.List;
 public class EmiController {
     private final EmiService emiService;
 
+//    paginate
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/future-emis")
     public List<EmiResponseDto> getFutureEmi(@RequestBody EmiRequestDto emiRequestDto){

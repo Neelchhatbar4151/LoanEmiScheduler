@@ -28,6 +28,7 @@ public class BranchController {
         return ResponseEntity.ok(branchResponseDto);
     }
 
+//    paginate
     @GetMapping("/branches")
     public ResponseEntity<List<BranchResponseDto>> findAll(){
         return ResponseEntity.ok(branchService.findAll());

@@ -4,6 +4,8 @@ import com.tss.LoanEmiScheduler.entity.Emi;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import jakarta.persistence.LockModeType;
 import jakarta.validation.constraints.FutureOrPresent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -77,7 +79,7 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     List<Emi> findUnpaidEmisWithGivenDueDate(@Param("givenDate") LocalDate givenDate);
 
 //    future emis
-    List<Emi> findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
+    Page<Emi> findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter, Pageable pageable);
     Emi findFirstEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
 
 //    past emis

@@ -43,6 +43,7 @@ public class LoanController {
         return ResponseEntity.ok(loanApplyResponseDto);
     }
 
+//    paginate
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/my-loans")
     public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower(
@@ -60,6 +61,7 @@ public class LoanController {
         return ResponseEntity.ok(loanService.findLoanByLoanNumber(loanNumber));
     }
 
+//    paginate
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans")
     public ResponseEntity<List<LoanResponseDto>> findLoanByBranch(
@@ -71,12 +73,14 @@ public class LoanController {
         return ResponseEntity.ok(officerService.getAllLoans(status));
     }
 
+//    paginate
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans/my-loans")
     public ResponseEntity<List<LoanResponseDto>> findByOfficer(){
         return ResponseEntity.ok(officerService.getAllLoansByOfficer());
     }
 
+//    paginate
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans/{accountNumber}")
     public ResponseEntity<List<LoanResponseDto>> findLoanByBorrower(
