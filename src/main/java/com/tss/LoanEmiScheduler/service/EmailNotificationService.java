@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.NotificationType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -11,7 +12,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.EMAIL;
 
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public class EmailNotificationService implements NotificationService{
     @Override
     public void sendNotification(String to, NotificationType type, Map<String, Object> variables)
             throws MessagingException {
-        log.info("{} Create: Notification to {} for {}", EMAIL, to, type);
+        log.info("{} Create: Notification to {} for {}", LogTag.EMAIL.getValue(), to, type);
         Context context = new Context();
         context.setVariables(variables);
 
@@ -83,7 +83,7 @@ public class EmailNotificationService implements NotificationService{
         }
         context.setVariable("contentTemplate", contentTemplate);
         context.setVariable("title", subject);
-        log.info("{} Metadata: Notification subject: {} contentTemplate: {}", EMAIL, context.getVariable("title"), context.getVariable("contentTemplate"));
+        log.info("{} Metadata: Notification subject: {} contentTemplate: {}", LogTag.EMAIL.getValue(), context.getVariable("title"), context.getVariable("contentTemplate"));
         String html = templateEngine.process("email/layout", context);
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -91,7 +91,7 @@ public class EmailNotificationService implements NotificationService{
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(html, true);
-        log.info("{} Created: MimeMessageHelper object created with receiver: {}, subject: {}", EMAIL, to, subject);
+        log.info("{} Created: MimeMessageHelper object created with receiver: {}, subject: {}", LogTag.EMAIL.getValue(), to, subject);
         mailSender.send(message);
     }
 }

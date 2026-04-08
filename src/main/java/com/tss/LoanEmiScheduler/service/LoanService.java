@@ -10,10 +10,7 @@ import com.tss.LoanEmiScheduler.dto.response.OfficerLoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
-import com.tss.LoanEmiScheduler.enums.LoanStatus;
-import com.tss.LoanEmiScheduler.enums.LoanStrategy;
-import com.tss.LoanEmiScheduler.enums.NotificationType;
-import com.tss.LoanEmiScheduler.enums.Role;
+import com.tss.LoanEmiScheduler.enums.*;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.GlobalConfigRepository;
@@ -35,7 +32,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.LOAN;
 
 @Slf4j
 @Service
@@ -77,7 +73,7 @@ public class LoanService {
         if(!user.getRole().equals(Role.BORROWER)){
             throw new BadCredentialsException("Not a borrower.");
         }
-        log.info("{} Apply: Loan {} by borrower id: {}", LOAN, loanApplyRequestDto, user.getId());
+        log.info("{} Apply: Loan {} by borrower id: {}", LogTag.LOAN.getValue(), loanApplyRequestDto, user.getId());
 
         if(loanRepo.countByBorrower(((Borrower) user).getAccountNumber()) >= 3){
             throw new IllegalStateException("Can't have more than 3 Ongoing loans.");
@@ -91,7 +87,7 @@ public class LoanService {
         loan.setLoanStatus(LoanStatus.APPLIED);
         loan.setOutstandingBalance(loanApplyRequestDto.getPrincipalAmount());
         loan = loanRepo.save(loan);
-        log.info("{} Apply: Saved loan id {} and loan number {} by borrower id: {}", LOAN, loan.getId(), loan.getLoanNumber(), user.getId());
+        log.info("{} Apply: Saved loan id {} and loan number {} by borrower id: {}", LogTag.LOAN.getValue(), loan.getId(), loan.getLoanNumber(), user.getId());
 
         try{
             Map<String, Object> variables = new HashMap<>();
@@ -99,7 +95,7 @@ public class LoanService {
             variables.put("name", loan.getBorrower().getFirstName());
 
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPLICATION, variables);
-            log.info("{} Email: Sent to {} for loan number {}", LOAN, borrowerIdentifier, loan.getLoanNumber());
+            log.info("{} Email: Sent to {} for loan number {}", LogTag.LOAN.getValue(), borrowerIdentifier, loan.getLoanNumber());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -1,11 +1,11 @@
 package com.tss.LoanEmiScheduler.controller;
 
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.AUTH;
 import com.tss.LoanEmiScheduler.dto.request.auth.BorrowerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.OfficerSignUpRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.auth.UserLoginRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.auth.BorrowerSignUpResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.auth.OfficerSignUpResponseDto;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.service.AuthService;
 import jakarta.validation.Valid;
@@ -25,24 +25,24 @@ public class AuthController {
 
     @PostMapping("/signup/officer")
     public ResponseEntity<OfficerSignUpResponseDto> register(@RequestBody@Valid OfficerSignUpRequestDto officerSignUpDto){
-        log.info("{} Signup: Initiating registration for Officer: {}", AUTH, officerSignUpDto.getEmail());
+        log.info("{} Signup: Initiating registration for Officer: {}", LogTag.AUTH.getValue(), officerSignUpDto.getEmail());
         OfficerSignUpResponseDto officerSignUpResponseDto = authService.register(officerSignUpDto);
-        log.info("[AUTH] Signup: SUCCESS for Officer: {}", officerSignUpDto.getEmail());
+        log.info("[LogTag.AUTH.getValue()] Signup: SUCCESS for Officer: {}", officerSignUpDto.getEmail());
         return ResponseEntity.ok(officerSignUpResponseDto);
     }
     @PostMapping("/signup/borrower")
     public ResponseEntity<BorrowerSignUpResponseDto> register(@RequestBody@Valid BorrowerSignUpRequestDto borrowerSignUpRequestDto){
-        log.info("{} Signup: Initiating registration for Borrower: {}", AUTH, borrowerSignUpRequestDto.getEmail());
+        log.info("{} Signup: Initiating registration for Borrower: {}", LogTag.AUTH.getValue(), borrowerSignUpRequestDto.getEmail());
         BorrowerSignUpResponseDto borrowerSignUpResponseDto = authService.register(borrowerSignUpRequestDto);
-        log.info("{} Signup: SUCCESS for Borrower: {}", AUTH,borrowerSignUpResponseDto.getEmail());
+        log.info("{} Signup: SUCCESS for Borrower: {}", LogTag.AUTH.getValue(),borrowerSignUpResponseDto.getEmail());
         return ResponseEntity.ok(borrowerSignUpResponseDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserLoginRequestDto userLoginRequestDto){
-        log.info("{} Login: Initiating log in for user {}", AUTH, userLoginRequestDto.getIdentifier());
+        log.info("{} Login: Initiating log in for user {}", LogTag.AUTH.getValue(), userLoginRequestDto.getIdentifier());
         String message = authService.verify(userLoginRequestDto);
-        log.info("{} Login: SUCCESS for user {}", AUTH, userLoginRequestDto.getIdentifier());
+        log.info("{} Login: SUCCESS for user {}", LogTag.AUTH.getValue(), userLoginRequestDto.getIdentifier());
         return ResponseEntity.ok(message);
     }
 }

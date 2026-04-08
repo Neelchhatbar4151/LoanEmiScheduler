@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.filter;
 
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.service.CustomUserDetailsService;
 import com.tss.LoanEmiScheduler.service.JwtService;
 import io.jsonwebtoken.Claims;
@@ -18,8 +19,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.SECURITY;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        log.info("{} Filter: Initialized", SECURITY);
+        log.info("{} Filter: Initialized", LogTag.SECURITY.getValue());
 
         String authHeader = request.getHeader("Authorization");
         String token = null;
@@ -46,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             identifier = jwtService.extractIdentifier(token);
-            log.info("{} Filter: For user {}", SECURITY, identifier);
+            log.info("{} Filter: For user {}", LogTag.SECURITY.getValue(), identifier);
         }
 
         if (identifier != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -65,10 +64,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 authenticationToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
-                log.info("{} Filter: Authentication token configured for user {} with roles {}", SECURITY, identifier, roles);
+                log.info("{} Filter: Authentication token configured for user {} with roles {}", LogTag.SECURITY.getValue(), identifier, roles);
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }else {
-                log.warn("{} Filter: Token invalid for user {}", SECURITY, identifier);
+                log.warn("{} Filter: Token invalid for user {}", LogTag.SECURITY.getValue(), identifier);
             }
         }
         filterChain.doFilter(request, response);

@@ -9,6 +9,7 @@ import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.NotificationType;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
@@ -25,7 +26,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.LOAN;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -146,7 +146,7 @@ public class OfficerService {
         checkIfEligible(loan, officer);
 
         log.info("{} Approve: Approving loan number {} applied by borrower number {} for branch code {} approve by officer username {}",
-                LOAN,
+                LogTag.LOAN.getValue(),
                 loan.getLoanNumber(),
                 loan.getBorrower().getAccountNumber(),
                 loan.getBranch().getBranchCode(),
@@ -162,14 +162,14 @@ public class OfficerService {
 
         emiRepository.saveAll(schedule);
 
-        log.info("{}[EMI] Emi schedule: created for loan id {} schedule: {}", LOAN, loan.getId(), schedule);
+        log.info("{}[LogTag.EMI.getValue()] Emi schedule: created for loan id {} schedule: {}", LogTag.LOAN.getValue(), loan.getId(), schedule);
 
         OfficerAppliedLoanResponseDto dto = loanMapper.toOfficerAppliedLoanResponseDto(loan);
         dto.setEmiResponseDtoList(emiMapper.toDtoList(schedule));
         loan.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
-        log.info("{} Approve: Loan {} approved with with strategy {}", LOAN, loan.getId(), loan.getLoanStrategy());
+        log.info("{} Approve: Loan {} approved with with strategy {}", LogTag.LOAN.getValue(), loan.getId(), loan.getLoanStrategy());
 
         try {
             Map<String, Object> variables = new HashMap<>();
@@ -178,7 +178,7 @@ public class OfficerService {
             variables.put("name", loan.getBorrower().getFirstName());
 
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPROVAL, variables);
-            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LOAN, user.getId(), NotificationType.APPROVAL, loan.getId());
+            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LogTag.LOAN.getValue(), user.getId(), NotificationType.APPROVAL, loan.getId());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -200,7 +200,7 @@ public class OfficerService {
         checkIfEligible(loan, officer);
 
         log.info("{} Reject: Rejecting loan number {} applied by borrower number {} for branch code {} reject by officer username {}",
-                LOAN,
+                LogTag.LOAN.getValue(),
                 loan.getLoanNumber(),
                 loan.getBorrower().getAccountNumber(),
                 loan.getBranch().getBranchCode(),
@@ -215,7 +215,7 @@ public class OfficerService {
 
         try {
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.REJECTION, variables);
-            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LOAN, user.getId(), NotificationType.REJECTION, loan.getId());
+            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LogTag.LOAN.getValue(), user.getId(), NotificationType.REJECTION, loan.getId());
         }
         catch(Exception e){
             throw new RuntimeException(e);

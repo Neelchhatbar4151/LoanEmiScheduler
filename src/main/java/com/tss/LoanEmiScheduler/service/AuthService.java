@@ -12,6 +12,7 @@ import com.tss.LoanEmiScheduler.dto_mapper.BorrowerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.OfficerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.UserMapper;
 import com.tss.LoanEmiScheduler.entity.*;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.repository.*;
@@ -26,7 +27,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.AUTH;
 
 
 @Slf4j
@@ -54,7 +54,7 @@ public class AuthService {
     @Transactional
     public OfficerSignUpResponseDto register(OfficerSignUpRequestDto officerSignUpDto){
         log.info("{} Register: for officer {} in branch {} with pan {} using email {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 officerSignUpDto.getUsername(),
                 officerSignUpDto.getBranchCode(),
                 officerSignUpDto.getPanCard(),
@@ -78,7 +78,7 @@ public class AuthService {
 
         officer = officerRepository.save(officer);
         log.info("{} Register: officer registered with username {} for branch code {} with address id {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 officerSignUpDto.getUsername(),
                 branch.getBranchCode(),
                 address.getId()
@@ -89,7 +89,7 @@ public class AuthService {
     @Transactional
     public BorrowerSignUpResponseDto register(BorrowerSignUpRequestDto borrowerSignUpRequestDto){
         log.info("{} Register: for borrower in branch {} with pan {} using email {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 borrowerSignUpRequestDto.getBranchCode(),
                 borrowerSignUpRequestDto.getPanCard(),
                 borrowerSignUpRequestDto.getEmail()
@@ -99,7 +99,7 @@ public class AuthService {
                         borrowerSignUpRequestDto.getPanCard()
                 );
         log.info("{} Register: User fetched from gov DB: {} {} {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 userDetailsFetchDto.getFirstName(),
                 userDetailsFetchDto.getMiddleName(),
                 userDetailsFetchDto.getLastName()
@@ -119,7 +119,7 @@ public class AuthService {
 
         borrower = borrowerRepository.save(borrower);
         log.info("{} Register: borrower registered with account number {} for branch code {} with address id {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 borrower.getAccountNumber(),
                 branch.getBranchCode(),
                 address.getId()
@@ -129,7 +129,7 @@ public class AuthService {
 
     public String verify(UserLoginRequestDto loginRequestDto) {
         log.info("{} Login: for user {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 loginRequestDto.getIdentifier()
         );
         Authentication authentication = authenticationManager.authenticate(
@@ -138,7 +138,7 @@ public class AuthService {
                         loginRequestDto.getPassword())
         );
         log.info("{} Login: authentication done for user {}",
-                AUTH,
+                LogTag.AUTH.getValue(),
                 loginRequestDto.getIdentifier()
         );
         return jwtService.generateToken(authentication);

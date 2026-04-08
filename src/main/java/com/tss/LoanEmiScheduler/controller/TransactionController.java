@@ -1,6 +1,7 @@
 package com.tss.LoanEmiScheduler.controller;
 
 import com.tss.LoanEmiScheduler.dto.request.TransactionRequestDto;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.dto.response.BorrowerTransactionResponseDto;
 import com.tss.LoanEmiScheduler.service.TransactionService;
 import jakarta.validation.Valid;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.TRANSACTION;
 
 @RestController
 @RequestMapping("/api/v1/loans")
@@ -24,14 +24,14 @@ public class TransactionController {
     @PreAuthorize("hasRole('BORROWER')")
     public ResponseEntity<String> payForLoan(@RequestBody @Valid TransactionRequestDto transactionRequestDto){
         log.info("{} Pay: Initialized payment for loan {} of amount {} using {}",
-                TRANSACTION,
+                LogTag.TRANSACTION.getValue(),
                 transactionRequestDto.getLoanNumber(),
                 transactionRequestDto.getTransactionAmount(),
                 transactionRequestDto.getTransactionMode()
         );
         String message = transactionService.pay(transactionRequestDto);
         log.info("{} Pay: Success payment for loan {}",
-                TRANSACTION,
+                LogTag.TRANSACTION.getValue(),
                 transactionRequestDto.getLoanNumber()
         );
         return ResponseEntity.ok(message);
