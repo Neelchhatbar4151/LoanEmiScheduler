@@ -2,15 +2,19 @@ package com.tss.LoanEmiScheduler.service;
 
 import com.tss.LoanEmiScheduler.dto.request.EmiRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.EmiResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.FutureEmiResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.entity.Emi;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import com.tss.LoanEmiScheduler.entity.User;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
+import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.UserRepository;
+import jakarta.validation.constraints.Future;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,13 +32,14 @@ public class EmiService {
     private final UserRepository userRepository;
     private final LoanRepository loanRepository;
     private final EmiMapper emiMapper;
+    private final LoanStrategyFactory factory;
 
     public EmiResponseDto getEmi(Long emiId){
         Emi emi = emiRepo.findById(emiId).orElseThrow(()->new ResourceNotFoundException("Emi"));
         return emiMapper.toDto(emi);
     }
 
-    public Page<EmiResponseDto> getFutureEmiForLoan(EmiRequestDto emiRequestDto, Pageable pageable){
+    public Page<FutureEmiResponseDto> getFutureEmiForLoan(EmiRequestDto emiRequestDto, Pageable pageable){
         String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
@@ -53,11 +58,11 @@ public class EmiService {
         }
         if(emiList==null || emiList.isEmpty())
             throw new ResourceNotFoundException("Emi");
-        return emiList.map(emiMapper::toDto);
+        return emiList.map(emiMapper::toFutureEmiResponseDto);
     }
 
 
-    public EmiResponseDto getNextEmiForLoan(EmiRequestDto emiRequestDto){
+    public FutureEmiResponseDto getNextEmiForLoan(EmiRequestDto emiRequestDto){
         String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
@@ -76,7 +81,7 @@ public class EmiService {
         }
         if(emi == null)
             throw new ResourceNotFoundException("Emi");
-        return emiMapper.toDto(emi);
+        return emiMapper.toFutureEmiResponseDto(emi);
     }
 
     public Page<EmiResponseDto> getPastEmiForLoan(EmiRequestDto emiRequestDto, Pageable pageable){
@@ -99,5 +104,13 @@ public class EmiService {
         if(emiList == null)
             throw new ResourceNotFoundException("Emi");
         return emiList.map(emiMapper::toDto);
+    }
+
+    public LoanResponseDto getEmiScheduleAsOfDate(EmiRequestDto emiRequestDto, LocalDate asOfDate){
+        if(asOfDate == null){
+            asOfDate = LocalDate.now();
+        }
+        Loan loan = loanRepository.findByLoanNumber(emiRequestDto.getLoanNumber()).orElseThrow();
+        return factory.getStrategy(loan.getLoanStrategy()).getEmiSchedule(loan, asOfDate);
     }
 }

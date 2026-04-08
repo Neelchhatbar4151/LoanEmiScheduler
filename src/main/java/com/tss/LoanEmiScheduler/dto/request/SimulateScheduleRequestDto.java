@@ -8,6 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SimulateScheduleRequestDto {
-    private Long loanId;
+    private String loanNumber;
     private LoanStrategy loanStrategy;
 }
