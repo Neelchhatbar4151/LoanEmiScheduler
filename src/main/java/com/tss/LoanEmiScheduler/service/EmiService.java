@@ -49,7 +49,7 @@ public class EmiService {
                 .getId()
                 .equals(user.getId())
         ){
-             emiList = emiRepo.findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(loan.getId(), LocalDate.now(), pageable);
+             emiList = emiRepo.findEmiByLoanIdAndDueDateAfterAndIsActiveTrueOrderByDueDateAsc(loan.getId(), LocalDate.now(), pageable);
         }
         if(emiList==null || emiList.isEmpty())
             throw new ResourceNotFoundException("Emi");
@@ -72,7 +72,7 @@ public class EmiService {
                 .getId()
                 .equals(user.getId())
         ){
-            emi = emiRepo.findFirstEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(loan.getId(), LocalDate.now());
+            emi = emiRepo.findFirstEmiByLoanIdAndDueDateAfterAndIsActiveTrueOrderByDueDateAsc(loan.getId(), LocalDate.now());
         }
         if(emi == null)
             throw new ResourceNotFoundException("Emi");
@@ -94,7 +94,7 @@ public class EmiService {
                 .getId()
                 .equals(user.getId())
         ){
-            emiList = emiRepo.findEmiByLoanIdAndDueDateBeforeOrderByDueDate(loan.getId(), LocalDate.now(), pageable);
+            emiList = emiRepo.findEmiByLoanIdAndDueDateBeforeAndIsActiveTrueOrderByDueDate(loan.getId(), LocalDate.now(), pageable);
         }
         if(emiList == null)
             throw new ResourceNotFoundException("Emi");
