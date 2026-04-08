@@ -72,9 +72,14 @@ public class JwtService {
                 .getPayload();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractIdentifier(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            log.error("{} Jwt: Validation failed - {}", LogTag.SECURITY.getValue(), e.getMessage());
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {

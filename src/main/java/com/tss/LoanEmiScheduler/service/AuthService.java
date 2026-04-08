@@ -15,6 +15,7 @@ import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
+import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 
 @Slf4j
@@ -127,15 +131,27 @@ public class AuthService {
         return borrowerMapper.toBorrowerSignResponseDto(borrower);
     }
 
-    public String verify(UserLoginRequestDto loginRequestDto) {
+    public String verify(UserLoginRequestDto loginRequestDto, Role role) {
         log.info("{} Login: for user {}",
                 LogTag.AUTH.getValue(),
                 loginRequestDto.getIdentifier()
         );
+        UserDetails userDetails = null;
+        if(role.equals(Role.OFFICER)){
+            Officer officer = officerRepository.findByUsername(loginRequestDto.getIdentifier())
+                    .orElseThrow(() -> new UsernameNotFoundException("Officer not found"));
+            userDetails = new UserPrincipal(officer);
+        }else{
+            Borrower borrower = borrowerRepository.findByAccountNumber(loginRequestDto.getIdentifier())
+                    .orElseThrow(() -> new UsernameNotFoundException("Borrower not found"));
+            userDetails = new UserPrincipal(borrower);
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getIdentifier(),
-                        loginRequestDto.getPassword())
+                        userDetails.getUsername(),
+                        loginRequestDto.getPassword(),
+                        userDetails.getAuthorities()
+                )
         );
         log.info("{} Login: authentication done for user {}",
                 LogTag.AUTH.getValue(),
