@@ -224,15 +224,18 @@ public class StepUpLoanStrategy implements ILoanStrategy {
             emi.setEmiAmount(emiAmount);
             emi.setInterestComponent(interest);
             emi.setPrincipalComponent(principal);
-            if(emiAmount.compareTo(BigDecimal.ZERO) == 0)
-                emiActionService.handleCancelled(emi);
-            else
-                emiActionService.handlePending(emi);
+
             emi.setVersion(newVersion);
             emi.setIsActive(true);
 
             emi.setRemainingInterestComponent(interest);
             emi.setRemainingPrincipalComponent(principal);
+
+            if(emiAmount.compareTo(BigDecimal.ZERO) == 0)
+                emiActionService.handleCancelled(emi);
+            else
+                emiActionService.handlePending(emi);
+
 
             newEmis.add(emi);
 
