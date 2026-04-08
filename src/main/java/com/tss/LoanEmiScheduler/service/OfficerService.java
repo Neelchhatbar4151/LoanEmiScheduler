@@ -3,7 +3,8 @@ package com.tss.LoanEmiScheduler.service;
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
 import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
-import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.OfficerAppliedLoanResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.OfficerLoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
@@ -26,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +52,7 @@ public class OfficerService {
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
-    public Page<LoanResponseDto> getAllLoans(LoanStatus loanStatus, Pageable pageable){
+    public Page<OfficerLoanResponseDto> getAllLoans(LoanStatus loanStatus, Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -61,15 +63,15 @@ public class OfficerService {
 
         Page<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus, pageable);
         return pendingLoansForOfficer.map(loan -> {
-            LoanResponseDto dto = loanMapper.toDto(loan);
+            OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
             if (loan.getLoanStatus().equals(LoanStatus.APPLIED)) {
-                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+                dto.setLoanStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             }
             return dto;
         });
     }
 
-    public Page<LoanResponseDto> getAllLoansByOfficer(Pageable pageable){
+    public Page<OfficerLoanResponseDto> getAllLoansByOfficer(Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -80,10 +82,17 @@ public class OfficerService {
         Officer officer = ((Officer) user);
 
         Page<Loan> allLoans = loanRepo.findByOfficerId(officer.getId(), pageable);
-        return allLoans.map(loanMapper::toDto);
+//        return allLoans.map(loanMapper::toOfficerLoanResponseDto);
+        return allLoans.map(loan -> {
+            OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
+            if (loan.getLoanStatus().equals(LoanStatus.APPLIED)) {
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            }
+            return dto;
+        });
     }
 
-    public Page<LoanResponseDto> findLoanByBorrower(String  accountNumber, Pageable pageable) {
+    public Page<OfficerLoanResponseDto> findLoanByBorrower(String  accountNumber, Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -98,7 +107,7 @@ public class OfficerService {
         if (loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
         return loanList.map(loan -> {
-            LoanResponseDto dto = loanMapper.toDto(loan);
+            OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
             if (LoanStatus.APPLIED.equals(loan.getLoanStatus())) {
                 dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             }
@@ -124,7 +133,7 @@ public class OfficerService {
     }
 
     @Transactional
-    public LoanResponseDto approveLoan(ApproveRequestDto request){
+    public OfficerAppliedLoanResponseDto approveLoan(ApproveRequestDto request){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -153,10 +162,9 @@ public class OfficerService {
 
         log.info("{}[LogTag.EMI.getValue()] Emi schedule: created for loan id {} schedule: {}", LogTag.LOAN.getValue(), loan.getId(), schedule);
 
-        LoanResponseDto dto = loanMapper.toDto(loan);
-        dto.setEmis(emiMapper.toDtoList(schedule));
+        OfficerAppliedLoanResponseDto dto = loanMapper.toOfficerAppliedLoanResponseDto(loan);
+        dto.setEmiResponseDtoList(emiMapper.toDtoList(schedule));
         loan.setLoanStrategy(request.getLoanStrategy());
-        dto.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
         log.info("{} Approve: Loan {} approved with with strategy {}", LogTag.LOAN.getValue(), loan.getId(), loan.getLoanStrategy());
@@ -177,7 +185,7 @@ public class OfficerService {
     }
 
     @Transactional
-    public LoanResponseDto rejectLoan(RejectRequestDto requestDto){
+    public OfficerAppliedLoanResponseDto rejectLoan(RejectRequestDto requestDto){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -211,6 +219,6 @@ public class OfficerService {
             throw new RuntimeException(e);
         }
 
-        return loanMapper.toDto(loan);
+        return loanMapper.toOfficerAppliedLoanResponseDto(loan);
     }
 }

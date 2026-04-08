@@ -2,6 +2,7 @@ package com.tss.LoanEmiScheduler.controller;
 
 import com.tss.LoanEmiScheduler.dto.request.TransactionRequestDto;
 import com.tss.LoanEmiScheduler.enums.LogTag;
+import com.tss.LoanEmiScheduler.dto.response.BorrowerTransactionResponseDto;
 import com.tss.LoanEmiScheduler.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
