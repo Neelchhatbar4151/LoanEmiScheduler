@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,8 +152,7 @@ public class OfficerService {
                 officer.getUsername()
         );
 
-        //When applying loan application this will get set.
-//        loan.setInterestRate(GlobalConstant.INTEREST_RATE);
+        
 
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
