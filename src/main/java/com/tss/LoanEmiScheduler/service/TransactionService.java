@@ -5,6 +5,7 @@ import com.tss.LoanEmiScheduler.dto.request.TransactionRequestDto;
 import com.tss.LoanEmiScheduler.dto_mapper.TransactionMapper;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.PaymentAllocationType;
 import com.tss.LoanEmiScheduler.enums.Role;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
@@ -16,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.TRANSACTION;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,7 +56,7 @@ public class TransactionService {
                 borrower.getAccountNumber()
         ).orElseThrow(()->new ResourceNotFoundException("Loan"));
         log.info("{} Pay: Emi amount for loan {} by borrower {} of amount {}",
-                TRANSACTION,
+                LogTag.TRANSACTION.getValue(),
                 loan.getId(),
                 borrower.getId(),
                 txn.getTransactionAmount()
@@ -85,7 +85,7 @@ public class TransactionService {
 
         if(remainingAmount.compareTo(BigDecimal.ZERO) == 0){
             log.info("{} Success: On payment of amount {}  for loan {} by borrower {}",
-                    TRANSACTION,
+                    LogTag.TRANSACTION.getValue(),
                     txn.getTransactionAmount(),
                     loan.getId(),
                     borrower.getId()
@@ -134,7 +134,7 @@ public class TransactionService {
         //Notification for Extra amount getting credited in borrower account balance;
         String amt = extraAmount.setScale(2, RoundingMode.HALF_UP).toPlainString();
         log.info("{} Success: On payment of amount {}  for loan {} by borrower {}, extra payment made of amount {}",
-                TRANSACTION,
+                LogTag.TRANSACTION.getValue(),
                 txn.getTransactionAmount(),
                 loan.getId(),
                 borrower.getId(),

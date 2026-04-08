@@ -1,8 +1,8 @@
 package com.tss.LoanEmiScheduler.controller;
 
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.BRANCH;
 import com.tss.LoanEmiScheduler.dto.request.BranchRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.BranchResponseDto;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.service.BranchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +25,9 @@ public class BranchController {
     @PostMapping("/branches")
 //    @PreAuthorize("hasRole('OFFICER')")
     public ResponseEntity<BranchResponseDto> save(@RequestBody @Valid BranchRequestDto branchRequestDto){
-        log.info("{} Insert: Intialized process to save new branch {}", BRANCH, branchRequestDto.getBranchCode());
+        log.info("{} Insert: Intialized process to save new branch {}", LogTag.BRANCH.getValue(), branchRequestDto.getBranchCode());
         BranchResponseDto branchResponseDto = branchService.save(branchRequestDto);
-        log.info("{} Insert: Success for new branch {}", BRANCH, branchRequestDto.getBranchCode());
+        log.info("{} Insert: Success for new branch {}", LogTag.BRANCH.getValue(), branchRequestDto.getBranchCode());
         return ResponseEntity.ok(branchResponseDto);
     }
 
