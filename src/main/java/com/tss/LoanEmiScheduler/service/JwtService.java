@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -16,7 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import static com.tss.LoanEmiScheduler.constant.GlobalConstant.SECURITY;
 
 @Slf4j
 @Service
@@ -31,12 +31,12 @@ public class JwtService {
 
     public String generateToken(Authentication authentication) {
         Map<String, Object> claims = new HashMap<>();
-        log.info("{} Jwt: Generate token for authentication {}", SECURITY, authentication.getName());
+        log.info("{} Jwt: Generate token for authentication {}", LogTag.SECURITY.getValue(), authentication.getName());
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         claims.put("roles", roles);
-        log.info("{} Jwt: Extract roles: {} and claims: {} for {}", SECURITY, roles, claims, authentication.getName());
+        log.info("{} Jwt: Extract roles: {} and claims: {} for {}", LogTag.SECURITY.getValue(), roles, claims, authentication.getName());
         return Jwts.builder()
                 .claims(claims)
                 .subject(authentication.getName())
