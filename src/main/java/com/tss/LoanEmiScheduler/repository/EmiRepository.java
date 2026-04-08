@@ -79,9 +79,9 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     List<Emi> findUnpaidEmisWithGivenDueDate(@Param("givenDate") LocalDate givenDate);
 
 //    future emis
-    Page<Emi> findEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter, Pageable pageable);
-    Emi findFirstEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
+    Page<Emi> findEmiByLoanIdAndDueDateAfterAndIsActiveTrueOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter, Pageable pageable);
+    Emi findFirstEmiByLoanIdAndDueDateAfterAndIsActiveTrueOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
 
 //    past emis
-    Page<Emi> findEmiByLoanIdAndDueDateBeforeOrderByDueDate(Long loanId, @FutureOrPresent LocalDate dueDateBefore, Pageable pageable);
+    Page<Emi> findEmiByLoanIdAndDueDateBeforeAndIsActiveTrueOrderByDueDate(Long loanId, @FutureOrPresent LocalDate dueDateBefore, Pageable pageable);
 }

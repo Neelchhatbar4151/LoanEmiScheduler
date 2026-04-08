@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 @Table(name = "notifications")
 @Entity
@@ -13,6 +14,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "is_deleted = false")
 public class Notification extends BaseEntity{
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
