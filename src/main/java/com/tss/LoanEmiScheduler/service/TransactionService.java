@@ -1,5 +1,6 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.action_service.LoanActionService;
 import com.tss.LoanEmiScheduler.dto.request.TransactionRequestDto;
 import com.tss.LoanEmiScheduler.dto_mapper.TransactionMapper;
 import com.tss.LoanEmiScheduler.entity.*;
@@ -31,6 +32,8 @@ public class TransactionService {
     private final LoanRepository loanRepo;
     private final PaymentAllocationRepository paymentAllocationRepo;
     private final UserRepository userRepository;
+
+    private final LoanActionService loanActionService;
 
     private final LoanStrategyFactory strategyFactory;
 
@@ -95,20 +98,38 @@ public class TransactionService {
                 .subtract(loan.getOutstandingBalance())
         );
 
-        PaymentAllocation pa = new PaymentAllocation();
-        pa.setTransaction(transaction);
-        pa.setEmi(lastEmi);
-        pa.setAmountAllocated(remainingAmount.subtract(extraAmount));
-        pa.setPaymentAllocationType(PaymentAllocationType.PRINCIPAL);
-        paymentAllocationRepo.save(pa);
-
         loan.setOutstandingBalance(
                 loan.getOutstandingBalance()
-                .subtract(remainingAmount.subtract(extraAmount))
+                        .subtract(remainingAmount.subtract(extraAmount))
         );
 
+        List<Emi> remainingOverDueEmis = emiRepo
+                .findOverDueEmisByLoan(loan, LocalDate.now());
+
+        if(loan.getLoanStatus() == LoanStatus.NPA ||
+                loan.getLoanStatus() == LoanStatus.DELINQUENT ||
+                loan.getLoanStatus() == LoanStatus.OVERDUE){
+            if(remainingOverDueEmis.isEmpty()){
+                loanActionService.handleActive(loan);
+            }
+            else{
+                loanActionService.handleOverdue(loan);
+            }
+        }
+
         loanRepo.save(loan);
-        strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(lastEmi);
+
+        if(loan.getLoanStatus() != LoanStatus.CLOSED){
+            PaymentAllocation pa = new PaymentAllocation();
+            pa.setTransaction(transaction);
+            pa.setEmi(lastEmi);
+            pa.setAmountAllocated(remainingAmount.subtract(extraAmount));
+            pa.setPaymentAllocationType(PaymentAllocationType.PRINCIPAL);
+            paymentAllocationRepo.save(pa);
+
+            strategyFactory.getStrategy(loan.getLoanStrategy()).reAmortize(lastEmi);
+        }
+
 
         //Notification for Extra amount getting credited in borrower account balance;
         String amt = extraAmount.setScale(2, RoundingMode.HALF_UP).toPlainString();

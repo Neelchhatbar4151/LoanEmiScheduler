@@ -7,6 +7,7 @@ import com.tss.LoanEmiScheduler.entity.Emi;
 import com.tss.LoanEmiScheduler.entity.Penalty;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
 import com.tss.LoanEmiScheduler.enums.NotificationType;
+import com.tss.LoanEmiScheduler.exception.AmortizationNotPossibleException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.PenaltyRepository;
@@ -64,10 +65,20 @@ public class DailyEmiProcessingJob {
 
                 currEmi.setPenalty(penalty);
 
-                loanStrategyFactory.getStrategy(
-                        currEmi.getLoan()
-                                .getLoanStrategy())
-                        .reAmortize(currEmi);
+                try {
+                    loanStrategyFactory.getStrategy(
+                                    currEmi.getLoan()
+                                            .getLoanStrategy())
+                            .reAmortize(currEmi);
+                }
+                catch(AmortizationNotPossibleException e){
+                    Penalty loanPenalty = new Penalty();
+                    penalty.setPenaltyAmount(currEmi.getRemainingInterestComponent());
+                    penalty.setRemainingAmount(currEmi.getRemainingInterestComponent());
+                    penaltyRepository.save(loanPenalty);
+
+                    currEmi.getLoan().setPenalty(loanPenalty);
+                }
             }
 
             if(dpd > 90){

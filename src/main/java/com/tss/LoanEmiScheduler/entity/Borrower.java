@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Check(constraints = "debt_amount >= 0 AND annual_income >= 0")
+@Where(clause = "is_deleted = false")
 public class Borrower extends User{
     @Column(nullable = false, unique = true, updatable = false)
     private String accountNumber;  //add method to generate
