@@ -3,6 +3,7 @@ package com.tss.LoanEmiScheduler.controller;
 import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.LoanApplyRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
+import com.tss.LoanEmiScheduler.dto.response.BorrowerLoanResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
@@ -49,7 +50,7 @@ public class LoanController {
 //    paginate
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/my-loans")
-    public ResponseEntity<Page<LoanResponseDto>> findLoanByBorrower(
+    public ResponseEntity<Page<BorrowerLoanResponseDto>> findLoanByBorrower(
             @RequestParam(required = false)LoanStatus status,
             @PageableDefault(size = 5) Pageable pageable
     ) {
@@ -61,14 +62,14 @@ public class LoanController {
 
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/my-loans/{loanNumber}")
-    public ResponseEntity<LoanResponseDto> findLoanByLoanNumber(@PathVariable String loanNumber) {
+    public ResponseEntity<BorrowerLoanResponseDto> findLoanByLoanNumber(@PathVariable String loanNumber) {
         return ResponseEntity.ok(loanService.findLoanByLoanNumber(loanNumber));
     }
 
 //    paginate
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans")
-    public ResponseEntity<Page<LoanResponseDto>> findLoanByBranch(
+    public ResponseEntity<Page<OfficerLoanResponseDto>> findLoanByBranch(
             @RequestParam(required = false)LoanStatus status,
             @PageableDefault(size = 5) Pageable pageable
     ) {
@@ -81,14 +82,14 @@ public class LoanController {
 //    paginate
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans/my-loans")
-    public ResponseEntity<Page<LoanResponseDto>> findByOfficer(@PageableDefault(size = 5) Pageable pageable){
+    public ResponseEntity<Page<OfficerLoanResponseDto>> findByOfficer(@PageableDefault(size = 5) Pageable pageable){
         return ResponseEntity.ok(officerService.getAllLoansByOfficer(pageable));
     }
 
 //    paginate
     @PreAuthorize("hasRole('OFFICER')")
     @GetMapping("/branch-loans/{accountNumber}")
-    public ResponseEntity<Page<LoanResponseDto>> findLoanByBorrower(
+    public ResponseEntity<Page<OfficerLoanResponseDto>> findLoanByBorrower(
             @PathVariable String accountNumber,
             @PageableDefault(size = 5) Pageable pageable
     ){
@@ -97,7 +98,7 @@ public class LoanController {
 
     @PreAuthorize("hasRole('OFFICER')")
     @PatchMapping("/branch-loans/approve")
-    public ResponseEntity<LoanResponseDto> approveLoan(@RequestBody@Valid ApproveRequestDto requestDto) {
+    public ResponseEntity<OfficerAppliedLoanResponseDto> approveLoan(@RequestBody@Valid ApproveRequestDto requestDto) {
         log.info("{} Approve: Initializing approval process for loan {}", LOAN, requestDto.getLoanNumber());
         LoanResponseDto loanResponseDto = officerService.approveLoan(requestDto);
         log.info("{} Approve: Success for approve for loan {}", LOAN, loanResponseDto.getLoanNumber());
@@ -106,7 +107,7 @@ public class LoanController {
 
     @PreAuthorize("hasRole('OFFICER')")
     @PatchMapping("/branch-loans/reject")
-    public ResponseEntity<LoanResponseDto> rejectLoan(@RequestBody@Valid RejectRequestDto requestDto) {
+    public ResponseEntity<OfficerAppliedLoanResponseDto> rejectLoan(@RequestBody@Valid RejectRequestDto requestDto) {
         log.info("{} Reject: Initializing rejection process for loan {}", LOAN, requestDto.getLoanNumber());
         LoanResponseDto loanResponseDto = officerService.rejectLoan(requestDto);
         log.info("{} Reject: Success for reject for loan {}", LOAN, loanResponseDto.getLoanNumber());

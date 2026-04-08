@@ -2,6 +2,7 @@ package com.tss.LoanEmiScheduler.controller;
 
 import com.tss.LoanEmiScheduler.dto.request.EmiRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.EmiResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.FutureEmiResponseDto;
 import com.tss.LoanEmiScheduler.service.EmiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +22,7 @@ public class EmiController {
 
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/future-emis")
-    public ResponseEntity<Page<EmiResponseDto>> getFutureEmi(@RequestBody EmiRequestDto emiRequestDto, @PageableDefault(size = 5) Pageable pageable){
+    public ResponseEntity<Page<FutureEmiResponseDto>> getFutureEmi(@RequestBody EmiRequestDto emiRequestDto, @PageableDefault(size = 5) Pageable pageable){
         return ResponseEntity.ok(emiService.getFutureEmiForLoan(emiRequestDto, pageable));
     }
 
@@ -34,7 +35,7 @@ public class EmiController {
 
     @PreAuthorize("hasRole('BORROWER')")
     @GetMapping("/next-emi")
-    public ResponseEntity<EmiResponseDto> getNextEmi(@RequestBody EmiRequestDto emiRequestDto){
+    public ResponseEntity<FutureEmiResponseDto> getNextEmi(@RequestBody EmiRequestDto emiRequestDto){
         return ResponseEntity.ok(emiService.getNextEmiForLoan(emiRequestDto));
     }
 }

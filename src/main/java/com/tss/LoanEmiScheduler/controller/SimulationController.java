@@ -3,6 +3,7 @@ package com.tss.LoanEmiScheduler.controller;
 import com.tss.LoanEmiScheduler.cron_job.DailyEmiProcessingJob;
 import com.tss.LoanEmiScheduler.cron_job.DailyScheduler;
 import com.tss.LoanEmiScheduler.dto.request.SimulateScheduleRequestDto;
+import com.tss.LoanEmiScheduler.dto.response.EmiScheduleResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
 import com.tss.LoanEmiScheduler.service.LoanService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class SimulationController {
 
     @GetMapping("/emi-schedule")
     @PreAuthorize("hasRole('BORROWER')")
-    public LoanResponseDto simulateEmiSchedule(@RequestBody SimulateScheduleRequestDto requestDto){
+    public EmiScheduleResponseDto simulateEmiSchedule(@RequestBody SimulateScheduleRequestDto requestDto){
         return loanService.simulateSchedule(requestDto);
     }
 }

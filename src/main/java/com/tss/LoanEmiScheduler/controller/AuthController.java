@@ -39,10 +39,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody UserLoginRequestDto userLoginRequestDto){
+    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto userLoginRequestDto){
         log.info("{} Login: Initiating log in for user {}", AUTH, userLoginRequestDto.getIdentifier());
         String message = authService.verify(userLoginRequestDto);
         log.info("{} Login: SUCCESS for user {}", AUTH, userLoginRequestDto.getIdentifier());
-        return message;
+        return ResponseEntity.ok(message);
     }
 }
