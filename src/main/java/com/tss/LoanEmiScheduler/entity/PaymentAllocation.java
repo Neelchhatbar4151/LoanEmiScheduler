@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Check(constraints = "amount_allocated > 0")
+@Where(clause = "is_deleted = false")
 public class PaymentAllocation extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_id", nullable = false, updatable = false)
