@@ -103,6 +103,14 @@ public class TransactionService {
                         .subtract(remainingAmount.subtract(extraAmount))
         );
 
+        borrower.setDebtAmount(
+                borrower.getDebtAmount().add(
+                        transaction.getTransactionAmount().subtract(extraAmount)
+                )
+        );
+
+        userRepository.save(borrower);
+
         List<Emi> remainingOverDueEmis = emiRepo
                 .findOverDueEmisByLoan(loan, LocalDate.now());
 

@@ -8,10 +8,7 @@ import com.tss.LoanEmiScheduler.dto.response.OfficerLoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
-import com.tss.LoanEmiScheduler.enums.LoanStatus;
-import com.tss.LoanEmiScheduler.enums.LogTag;
-import com.tss.LoanEmiScheduler.enums.NotificationType;
-import com.tss.LoanEmiScheduler.enums.Role;
+import com.tss.LoanEmiScheduler.enums.*;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.BorrowerRepository;
@@ -27,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -140,6 +138,11 @@ public class OfficerService {
         if(!user.getRole().equals(Role.OFFICER)) {
             throw new SecurityException("Not an officer.");
         }
+
+        if(request.getLoanStrategy() == LoanStrategy.REJECT){
+            throw new IllegalArgumentException("Reject is not an approval strategy.");
+        }
+
         Officer officer = ((Officer) user);
         Loan loan = loanRepo.findByLoanNumber(request.getLoanNumber()).orElseThrow(() -> new ResourceNotFoundException("Loan"));
         checkIfEligible(loan, officer);
@@ -155,6 +158,12 @@ public class OfficerService {
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
         List<Emi> schedule = strategyFactory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
+
+        Borrower borrower = loan.getBorrower();
+        borrower.setDebtAmount(
+                borrower.getDebtAmount().add(
+                schedule.stream().map(Emi::getEmiAmount).reduce(BigDecimal.ZERO, BigDecimal::add)));
+        userRepository.save(borrower);
 
         emiRepository.saveAll(schedule);
 
