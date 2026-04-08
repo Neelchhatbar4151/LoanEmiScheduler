@@ -3,7 +3,6 @@ package com.tss.LoanEmiScheduler.service;
 import com.tss.LoanEmiScheduler.dto.request.EmiRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.EmiResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
-import com.tss.LoanEmiScheduler.entity.Borrower;
 import com.tss.LoanEmiScheduler.entity.Emi;
 import com.tss.LoanEmiScheduler.entity.Loan;
 import com.tss.LoanEmiScheduler.entity.User;
@@ -80,7 +79,7 @@ public class EmiService {
         return emiMapper.toDto(emi);
     }
 
-    public List<EmiResponseDto> getPastEmiForLoan(EmiRequestDto emiRequestDto){
+    public Page<EmiResponseDto> getPastEmiForLoan(EmiRequestDto emiRequestDto, Pageable pageable){
         String loanNumber = emiRequestDto.getLoanNumber();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
@@ -90,15 +89,15 @@ public class EmiService {
             throw new SecurityException("Not a borrower.");
         }
         Loan loan = loanRepository.findByLoanNumber(loanNumber).orElseThrow();
-        List<Emi> emiList = null;
+        Page<Emi> emiList = null;
         if(loan.getBorrower()
                 .getId()
                 .equals(user.getId())
         ){
-            emiList = emiRepo.findEmiByLoanIdAndDueDateBeforeOrderByDueDate(loan.getId(), LocalDate.now());
+            emiList = emiRepo.findEmiByLoanIdAndDueDateBeforeOrderByDueDate(loan.getId(), LocalDate.now(), pageable);
         }
         if(emiList == null)
             throw new ResourceNotFoundException("Emi");
-        return emiMapper.toDtoList(emiList);
+        return emiList.map(emiMapper::toDto);
     }
 }

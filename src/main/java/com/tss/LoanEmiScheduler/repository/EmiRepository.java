@@ -83,5 +83,5 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     Emi findFirstEmiByLoanIdAndDueDateAfterOrderByDueDateAsc(Long loanId, @FutureOrPresent LocalDate dueDateAfter);
 
 //    past emis
-    List<Emi> findEmiByLoanIdAndDueDateBeforeOrderByDueDate(Long loanId, @FutureOrPresent LocalDate dueDateBefore);
+    Page<Emi> findEmiByLoanIdAndDueDateBeforeOrderByDueDate(Long loanId, @FutureOrPresent LocalDate dueDateBefore, Pageable pageable);
 }
