@@ -9,6 +9,8 @@ import com.tss.LoanEmiScheduler.entity.Branch;
 import com.tss.LoanEmiScheduler.repository.BranchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,8 +34,8 @@ public class BranchService {
         return branchMapper.toBranchResponseDto(branch);
     }
 
-    public List<BranchResponseDto> findAll(){
-        return branchRepository.findAll()
-                .stream().map(branchMapper::toBranchResponseDto).toList();
+    public Page<BranchResponseDto> findAll(Pageable pageable){
+        return branchRepository.findAll(pageable)
+                .map(branchMapper::toBranchResponseDto);
     }
 }

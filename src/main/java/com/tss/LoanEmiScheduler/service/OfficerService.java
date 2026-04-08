@@ -19,6 +19,8 @@ import com.tss.LoanEmiScheduler.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -49,28 +51,26 @@ public class OfficerService {
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
-    public List<LoanResponseDto> getAllLoans(LoanStatus loanStatus){
+    public Page<LoanResponseDto> getAllLoans(LoanStatus loanStatus, Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
         if(!user.getRole().equals(Role.OFFICER)) {
             throw new SecurityException("Not an officer.");
         }
-
         Officer officer = ((Officer) user);
 
-        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus);
-        List<LoanResponseDto> dtos = new ArrayList<>();
-        for (Loan loan : pendingLoansForOfficer) {
+        Page<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus, pageable);
+        return pendingLoansForOfficer.map(loan -> {
             LoanResponseDto dto = loanMapper.toDto(loan);
-            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
+            if (loan.getLoanStatus().equals(LoanStatus.APPLIED)) {
                 dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
-            dtos.add(dto);
-        }
-        return dtos;
+            }
+            return dto;
+        });
     }
 
-    public List<LoanResponseDto> getAllLoansByOfficer(){
+    public Page<LoanResponseDto> getAllLoansByOfficer(Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -80,16 +80,11 @@ public class OfficerService {
 
         Officer officer = ((Officer) user);
 
-        List<Loan> allLoans = loanRepo.findByOfficerId(officer.getId());
-        List<LoanResponseDto> dtos = new ArrayList<>();
-        for (Loan loan : allLoans) {
-            LoanResponseDto dto = loanMapper.toDto(loan);
-            dtos.add(dto);
-        }
-        return dtos;
+        Page<Loan> allLoans = loanRepo.findByOfficerId(officer.getId(), pageable);
+        return allLoans.map(loanMapper::toDto);
     }
 
-    public List<LoanResponseDto> findLoanByBorrower(String  accountNumber) {
+    public Page<LoanResponseDto> findLoanByBorrower(String  accountNumber, Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -100,17 +95,16 @@ public class OfficerService {
 
         Long branchId = ((Officer) user).getBranch().getId();
         Long borrowerId = borrowerRepository.findByAccountNumber(accountNumber).orElseThrow().getId();
-        List<Loan> loanList = loanRepo.findByBranchIdAndBorrowerId(branchId, borrowerId);
-        List<LoanResponseDto> dtos = new ArrayList<>();
-        for (Loan loan : loanList) {
-            LoanResponseDto dto = loanMapper.toDto(loan);
-            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
-                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
-            dtos.add(dto);
-        }
+        Page<Loan> loanList = loanRepo.findByBranchIdAndBorrowerId(branchId, borrowerId, pageable);
         if (loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
-        return dtos;
+        return loanList.map(loan -> {
+            LoanResponseDto dto = loanMapper.toDto(loan);
+            if (LoanStatus.APPLIED.equals(loan.getLoanStatus())) {
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            }
+            return dto;
+        });
     }
 
     private void checkIfEligible(Loan loan, Officer officer){
