@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class JwtService {
 
     private String secretKey="";
+
     public JwtService() throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
         SecretKey sk = keyGenerator.generateKey();
@@ -32,10 +33,13 @@ public class JwtService {
     public String generateToken(Authentication authentication) {
         Map<String, Object> claims = new HashMap<>();
         log.info("{} Jwt: Generate token for authentication {}", LogTag.SECURITY.getValue(), authentication.getName());
+
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+
         claims.put("roles", roles);
+
         log.info("{} Jwt: Extract roles: {} and claims: {} for {}", LogTag.SECURITY.getValue(), roles, claims, authentication.getName());
         return Jwts.builder()
                 .claims(claims)

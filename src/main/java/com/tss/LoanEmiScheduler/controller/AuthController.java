@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.angus.mail.imap.protocol.IMAPProtocol;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,6 +25,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup/officer")
+    @PreAuthorize("hasRole('OFFICER')")
     public ResponseEntity<OfficerSignUpResponseDto> register(@RequestBody@Valid OfficerSignUpRequestDto officerSignUpDto){
         log.info("{} Signup: Initiating registration for Officer: {}", LogTag.AUTH.getValue(), officerSignUpDto.getEmail());
         OfficerSignUpResponseDto officerSignUpResponseDto = authService.register(officerSignUpDto);

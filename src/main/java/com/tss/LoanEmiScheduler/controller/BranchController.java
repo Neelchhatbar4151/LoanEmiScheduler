@@ -23,9 +23,9 @@ import java.util.List;
 public class BranchController {
     private final BranchService branchService;
     @PostMapping("/branches")
-//    @PreAuthorize("hasRole('OFFICER')")
+    @PreAuthorize("hasRole('OFFICER')")
     public ResponseEntity<BranchResponseDto> save(@RequestBody @Valid BranchRequestDto branchRequestDto){
-        log.info("{} Insert: Intialized process to save new branch {}", LogTag.BRANCH.getValue(), branchRequestDto.getBranchCode());
+        log.info("{} Insert: Initialized process to save new branch {}", LogTag.BRANCH.getValue(), branchRequestDto.getBranchCode());
         BranchResponseDto branchResponseDto = branchService.save(branchRequestDto);
         log.info("{} Insert: Success for new branch {}", LogTag.BRANCH.getValue(), branchRequestDto.getBranchCode());
         return ResponseEntity.ok(branchResponseDto);

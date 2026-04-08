@@ -15,7 +15,9 @@ public interface EmiMapper {
     @Mapping(source = "penalty.remainingAmount", target = "penaltyRemaining", defaultExpression = "java(java.math.BigDecimal.ZERO)")
     EmiResponseDto toDto(Emi emi);
 
+    @Mapping(source = "loan.loanNumber", target = "loanNumber")
     List<EmiResponseDto> toDtoList(List<Emi> emis);
+
     @Mapping(source = "loan.loanNumber", target = "loanNumber")
     FutureEmiResponseDto toFutureEmiResponseDto(Emi emi);
     default java.math.BigDecimal scale(java.math.BigDecimal value) {

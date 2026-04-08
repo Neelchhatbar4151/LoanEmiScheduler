@@ -61,7 +61,7 @@ public class LoanService {
         List<Emi> schedule = factory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
         EmiScheduleResponseDto dto = loanMapper.toEmiScheduleResponseDto(loan);
         dto.setEmis(emiMapper.toDtoList(schedule));
-
+        dto.setSimulationStrategy(request.getLoanStrategy());
         return dto;
     }
 
