@@ -5,7 +5,8 @@ import com.tss.LoanEmiScheduler.dto.request.LoanApplyRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
 import com.tss.LoanEmiScheduler.dto.response.BorrowerLoanResponseDto;
 import com.tss.LoanEmiScheduler.dto.response.LoanApplyResponseDto;
-import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.OfficerAppliedLoanResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.OfficerLoanResponseDto;
 import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.service.LoanService;
 import com.tss.LoanEmiScheduler.service.OfficerService;
@@ -100,7 +101,7 @@ public class LoanController {
     @PatchMapping("/branch-loans/approve")
     public ResponseEntity<OfficerAppliedLoanResponseDto> approveLoan(@RequestBody@Valid ApproveRequestDto requestDto) {
         log.info("{} Approve: Initializing approval process for loan {}", LOAN, requestDto.getLoanNumber());
-        LoanResponseDto loanResponseDto = officerService.approveLoan(requestDto);
+        OfficerAppliedLoanResponseDto loanResponseDto = officerService.approveLoan(requestDto);
         log.info("{} Approve: Success for approve for loan {}", LOAN, loanResponseDto.getLoanNumber());
         return ResponseEntity.ok(loanResponseDto);
     }
@@ -109,7 +110,7 @@ public class LoanController {
     @PatchMapping("/branch-loans/reject")
     public ResponseEntity<OfficerAppliedLoanResponseDto> rejectLoan(@RequestBody@Valid RejectRequestDto requestDto) {
         log.info("{} Reject: Initializing rejection process for loan {}", LOAN, requestDto.getLoanNumber());
-        LoanResponseDto loanResponseDto = officerService.rejectLoan(requestDto);
+        OfficerAppliedLoanResponseDto loanResponseDto = officerService.rejectLoan(requestDto);
         log.info("{} Reject: Success for reject for loan {}", LOAN, loanResponseDto.getLoanNumber());
         return ResponseEntity.ok(loanResponseDto);
     }

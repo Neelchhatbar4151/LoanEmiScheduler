@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 public class BorrowerLoanResponseDto {
     private String loanNumber;
     private String officerUsername;
-    private LocalDateTime disbursementDate;
+    private LocalDate disbursementDate;
     private LocalDate closedAt;
-    private LocalDate approvedAt;
     private Integer tenure;
     private BigDecimal principalAmount;
     private BigDecimal interestRate;

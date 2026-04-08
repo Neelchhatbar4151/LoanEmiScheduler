@@ -4,7 +4,6 @@ import com.tss.LoanEmiScheduler.enums.LoanStatus;
 import com.tss.LoanEmiScheduler.enums.LoanStrategy;
 import com.tss.LoanEmiScheduler.enums.LoanType;
 import lombok.Data;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,17 +11,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@Setter
-public class OfficerAppliedLoanResponseDto {
+public class LoanResponseDto {
     private String loanNumber;
     private String borrowerAccountNumber;
-    private LocalDate createdAt;
+    private String borrowerAccountName;
+    private LocalDate disbursementDate;
+    private LocalDate closedAt;
     private Integer tenure;
     private BigDecimal principalAmount;
     private BigDecimal interestRate;
-    private String branchCode;
+    private String branch;
     private LoanStatus loanStatus;
     private LoanType loanType;
-    private List<EmiResponseDto> emiResponseDtoList;
+    private LoanStrategy loanStrategy;
+    private BigDecimal outstandingBalance;
+    private BigDecimal penaltyAmount;
+    private BigDecimal penaltyRemaining;
+    private List<EmiResponseDto> emis;
+    private LoanStrategy suggestedStrategy;
 }
-

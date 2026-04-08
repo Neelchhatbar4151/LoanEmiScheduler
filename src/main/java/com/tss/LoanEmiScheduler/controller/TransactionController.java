@@ -22,7 +22,7 @@ public class TransactionController {
     private final TransactionService transactionService;
     @PutMapping("/pay")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<BorrowerTransactionResponseDto> payForLoan(@RequestBody @Valid TransactionRequestDto transactionRequestDto){
+    public ResponseEntity<String> payForLoan(@RequestBody @Valid TransactionRequestDto transactionRequestDto){
         log.info("{} Pay: Initialized payment for loan {} of amount {} using {}",
                 TRANSACTION,
                 transactionRequestDto.getLoanNumber(),
