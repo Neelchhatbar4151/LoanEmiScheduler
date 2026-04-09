@@ -169,13 +169,13 @@ public class StepUpLoanStrategy implements ILoanStrategy {
                         ? triggerEmi.getPenalInterest()
                         : BigDecimal.ZERO);
 
-        BigDecimal extra = emiPaid.subtract(ideal);
+//        BigDecimal extra = emiPaid.subtract(ideal);
 
-        if (extra.compareTo(BigDecimal.ZERO) > 0) {
-            loan.setOutstandingBalance(
-                    loan.getOutstandingBalance().subtract(extra).max(BigDecimal.ZERO)
-            );
-        }
+//        if (extra.compareTo(BigDecimal.ZERO) > 0) {
+//            loan.setOutstandingBalance(
+//                    loan.getOutstandingBalance().subtract(extra).max(BigDecimal.ZERO)
+//            );
+//        }
 
         int remainingTenure = futureEmis.size();
         BigDecimal newPrincipal = loan.getOutstandingBalance();
@@ -224,15 +224,18 @@ public class StepUpLoanStrategy implements ILoanStrategy {
             emi.setEmiAmount(emiAmount);
             emi.setInterestComponent(interest);
             emi.setPrincipalComponent(principal);
-            if(emiAmount.compareTo(BigDecimal.ZERO) == 0)
-                emiActionService.handleCancelled(emi);
-            else
-                emiActionService.handlePending(emi);
+
             emi.setVersion(newVersion);
             emi.setIsActive(true);
 
             emi.setRemainingInterestComponent(interest);
             emi.setRemainingPrincipalComponent(principal);
+
+            if(emiAmount.compareTo(BigDecimal.ZERO) == 0)
+                emiActionService.handleCancelled(emi);
+            else
+                emiActionService.handlePending(emi);
+
 
             newEmis.add(emi);
 

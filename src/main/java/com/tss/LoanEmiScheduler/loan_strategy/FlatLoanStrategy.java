@@ -217,14 +217,14 @@ public class FlatLoanStrategy implements ILoanStrategy {
                 .add(triggerEmi.getInterestComponent())
                 .add(triggerEmi.getPrincipalComponent());
 
-        BigDecimal extraPayment = emiPaidAmount.subtract(idealPayment);
+//        BigDecimal extraPayment = emiPaidAmount.subtract(idealPayment);
 
-        if (extraPayment.compareTo(BigDecimal.ZERO) > 0) {
-
-            BigDecimal newBalance = loan.getOutstandingBalance().subtract(extraPayment);
-
-            loan.setOutstandingBalance(newBalance.max(BigDecimal.ZERO));
-        }
+//        if (extraPayment.compareTo(BigDecimal.ZERO) > 0) {
+//
+//            BigDecimal newBalance = loan.getOutstandingBalance().subtract(extraPayment);
+//
+//            loan.setOutstandingBalance(newBalance.max(BigDecimal.ZERO));
+//        }
 
         // 7. RE-AMORTIZE FUTURE EMIs
         int remainingTenure = futureEmis.size();

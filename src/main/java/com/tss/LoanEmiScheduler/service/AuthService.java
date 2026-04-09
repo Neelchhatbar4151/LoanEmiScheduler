@@ -12,21 +12,28 @@ import com.tss.LoanEmiScheduler.dto_mapper.BorrowerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.OfficerMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.UserMapper;
 import com.tss.LoanEmiScheduler.entity.*;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.Role;
+import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
+import com.tss.LoanEmiScheduler.exception.SignUpFailedException;
 import com.tss.LoanEmiScheduler.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -50,7 +57,17 @@ public class AuthService {
 
     @Transactional
     public OfficerSignUpResponseDto register(OfficerSignUpRequestDto officerSignUpDto){
+        log.info("{} Register: for officer {} in branch {} with pan {} using email {}",
+                LogTag.AUTH.getValue(),
+                officerSignUpDto.getUsername(),
+                officerSignUpDto.getBranchCode(),
+                officerSignUpDto.getPanCard(),
+                officerSignUpDto.getEmail()
+        );
         UserDetailsFetchDto userDetailsFetchDto = panValidationService.fetchDetailsFromExternalSystem(officerSignUpDto.getPanCard());
+        if(userDetailsFetchDto == null) {
+            throw new ResourceNotFoundException(officerSignUpDto.getPanCard());
+        }
         Officer officer = officerMapper.toOfficer(userDetailsFetchDto, officerSignUpDto);
         Address address = addressMapper.toAddress(userDetailsFetchDto.getAddressResponseDto());
         Branch branch = branchRepository.findByBranchCode(officerSignUpDto.getBranchCode())
@@ -63,18 +80,34 @@ public class AuthService {
         officer.setBranch(branch);
         officer.setRole(Role.OFFICER);
 
-
         officer = officerRepository.save(officer);
-
+        log.info("{} Register: officer registered with username {} for branch code {} with address id {}",
+                LogTag.AUTH.getValue(),
+                officerSignUpDto.getUsername(),
+                branch.getBranchCode(),
+                address.getId()
+        );
         return officerMapper.toOfficerSignUpResponseDto(officer);
     }
 
     @Transactional
     public BorrowerSignUpResponseDto register(BorrowerSignUpRequestDto borrowerSignUpRequestDto){
+        log.info("{} Register: for borrower in branch {} with pan {} using email {}",
+                LogTag.AUTH.getValue(),
+                borrowerSignUpRequestDto.getBranchCode(),
+                borrowerSignUpRequestDto.getPanCard(),
+                borrowerSignUpRequestDto.getEmail()
+        );
         UserDetailsFetchDto userDetailsFetchDto = panValidationService
                 .fetchDetailsFromExternalSystem(
                         borrowerSignUpRequestDto.getPanCard()
                 );
+        log.info("{} Register: User fetched from gov DB: {} {} {}",
+                LogTag.AUTH.getValue(),
+                userDetailsFetchDto.getFirstName(),
+                userDetailsFetchDto.getMiddleName(),
+                userDetailsFetchDto.getLastName()
+        );
 
         Borrower borrower = borrowerMapper.toBorrower(userDetailsFetchDto, borrowerSignUpRequestDto);
         Address address = addressMapper.toAddress(userDetailsFetchDto.getAddressResponseDto());
@@ -89,15 +122,40 @@ public class AuthService {
         borrower.setRole(Role.BORROWER);
 
         borrower = borrowerRepository.save(borrower);
-
+        log.info("{} Register: borrower registered with account number {} for branch code {} with address id {}",
+                LogTag.AUTH.getValue(),
+                borrower.getAccountNumber(),
+                branch.getBranchCode(),
+                address.getId()
+        );
         return borrowerMapper.toBorrowerSignResponseDto(borrower);
     }
 
-    public String verify(UserLoginRequestDto loginRequestDto) {
+    public String verify(UserLoginRequestDto loginRequestDto, Role role) {
+        log.info("{} Login: for user {}",
+                LogTag.AUTH.getValue(),
+                loginRequestDto.getIdentifier()
+        );
+        UserDetails userDetails = null;
+        if(role.equals(Role.OFFICER)){
+            Officer officer = officerRepository.findByUsername(loginRequestDto.getIdentifier())
+                    .orElseThrow(() -> new UsernameNotFoundException("Officer not found"));
+            userDetails = new UserPrincipal(officer);
+        }else{
+            Borrower borrower = borrowerRepository.findByAccountNumber(loginRequestDto.getIdentifier())
+                    .orElseThrow(() -> new UsernameNotFoundException("Borrower not found"));
+            userDetails = new UserPrincipal(borrower);
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getIdentifier(),
-                        loginRequestDto.getPassword())
+                        userDetails.getUsername(),
+                        loginRequestDto.getPassword(),
+                        userDetails.getAuthorities()
+                )
+        );
+        log.info("{} Login: authentication done for user {}",
+                LogTag.AUTH.getValue(),
+                loginRequestDto.getIdentifier()
         );
         return jwtService.generateToken(authentication);
     }

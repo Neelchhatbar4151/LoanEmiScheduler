@@ -3,14 +3,17 @@ package com.tss.LoanEmiScheduler.service;
 import com.tss.LoanEmiScheduler.action_service.EmiActionService;
 import com.tss.LoanEmiScheduler.entity.*;
 import com.tss.LoanEmiScheduler.enums.EmiStatus;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.enums.PaymentAllocationType;
 import com.tss.LoanEmiScheduler.repository.EmiRepository;
 import com.tss.LoanEmiScheduler.repository.LoanRepository;
 import com.tss.LoanEmiScheduler.repository.PaymentAllocationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,6 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentAllocationService {
 
     private final EmiRepository emiRepository;
@@ -28,10 +32,9 @@ public class PaymentAllocationService {
 
     @Transactional
     public BigDecimal allocate(Transaction txn) {
-
         BigDecimal remaining = txn.getTransactionAmount();
         Loan loan = txn.getLoan();
-
+        log.info("{} Allocate: on transaction {} for amount {}", LogTag.TRANSACTION.getValue(), txn.getId(), remaining);
         List<Emi> emis = emiRepository
                 .findOverDueEmisByLoan(loan, LocalDate.now());
         List<Emi> latestEmi = emiRepository
@@ -70,7 +73,7 @@ public class PaymentAllocationService {
 
         saveAllocation(txn, emi, PaymentAllocationType.PENAL_INTEREST, pay);
         emi.setRemainingPenalInterest(due.subtract(pay));
-
+        log.info("{} Allocate: penal interest of amount {}  on emi {}", LogTag.TRANSACTION.getValue(), due, emi.getId());
         return remaining.subtract(pay);
     }
 
@@ -85,7 +88,7 @@ public class PaymentAllocationService {
 
         saveAllocation(txn, emi, PaymentAllocationType.PENALTY, pay);
         emi.getPenalty().setRemainingAmount(due.subtract(pay));
-
+        log.info("{} Allocate: penalty of amount {}  on emi {}", LogTag.TRANSACTION.getValue(), due, emi.getId());
         return remaining.subtract(pay);
     }
 
@@ -98,7 +101,7 @@ public class PaymentAllocationService {
 
         saveAllocation(txn, emi, PaymentAllocationType.INTEREST, pay);
         emi.setRemainingInterestComponent(due.subtract(pay));
-
+        log.info("{} Allocate: interest of amount {}  on emi {}", LogTag.TRANSACTION.getValue(), due, emi.getId());
         return remaining.subtract(pay);
     }
 
@@ -116,7 +119,7 @@ public class PaymentAllocationService {
         loan.setOutstandingBalance(
                 loan.getOutstandingBalance().subtract(pay)
         );
-
+        log.info("{} Allocate: principal of amount {}  on loan {}", LogTag.TRANSACTION.getValue(), due, loan.getId());
         return remaining.subtract(pay);
     }
 
@@ -129,7 +132,7 @@ public class PaymentAllocationService {
 
         saveAllocation(txn, null, PaymentAllocationType.LOAN_PENALTY, pay);
         loan.getPenalty().setRemainingAmount(due.subtract(pay));
-
+        log.info("{} Allocate: penalty of amount {}  on loan {}", LogTag.TRANSACTION.getValue(), due, loan.getId());
         return remaining.subtract(pay);
     }
 
@@ -144,12 +147,18 @@ public class PaymentAllocationService {
         pa.setEmi(emi);
         pa.setPaymentAllocationType(type);
         pa.setAmountAllocated(amount);
-
+        log.info("{} Allocate: Saved for transaction {} on emi {} of type {} for amount {} on payment allocation {}",
+                LogTag.TRANSACTION.getValue(),
+                txn.getId(),
+                emi.getId(),
+                pa.getPaymentAllocationType(),
+                pa.getAmountAllocated(),
+                pa.getId()
+        );
         paymentAllocationRepository.save(pa);
     }
 
     private void updateEmiStatus(Emi emi) {
-
         boolean principalDone = emi.getRemainingPrincipalComponent().compareTo(BigDecimal.ZERO) == 0;
         boolean interestDone = emi.getRemainingInterestComponent().compareTo(BigDecimal.ZERO) == 0;
         boolean penalDone = emi.getRemainingPenalInterest().compareTo(BigDecimal.ZERO) == 0;
@@ -159,8 +168,10 @@ public class PaymentAllocationService {
 
         if (principalDone && interestDone && penalDone && penaltyDone) {
             EmiStatus.PAID.handleAndSet(emi, emiActionService);
+            log.info("{} Status: update for emi {} to {}", LogTag.EMI.getValue(), emi.getId(), EmiStatus.PAID);
         } else {
             EmiStatus.PARTIALLY_PAID.handleAndSet(emi, emiActionService);
+            log.info("{} Status: update for emi {} to {}", LogTag.EMI.getValue(), emi.getId(), EmiStatus.PARTIALLY_PAID);
         }
     }
 }

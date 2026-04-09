@@ -6,14 +6,17 @@ import com.tss.LoanEmiScheduler.dto_mapper.AddressMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.BranchMapper;
 import com.tss.LoanEmiScheduler.entity.Address;
 import com.tss.LoanEmiScheduler.entity.Branch;
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import com.tss.LoanEmiScheduler.repository.BranchRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BranchService {
     private final BranchRepository branchRepository;
     private final BranchMapper branchMapper;
@@ -21,14 +24,16 @@ public class BranchService {
 
     public BranchResponseDto save(BranchRequestDto branchRequestDto){
         Branch branch = branchMapper.toBranch(branchRequestDto);
+        log.info("{} Saving: Branch with name {} branch code {}", LogTag.BRANCH.getValue(), branch.getBranchName(), branch.getBranchCode());
         Address address = addressMapper.toAddress(branchRequestDto);
-
         branch.setAddress(address);
-        return branchMapper.toBranchResponseDto(branchRepository.save(branch));
+        branch = branchRepository.save(branch);
+        log.info("{} Saving: Saved branch with branch name {} branch code {} with id {}", LogTag.BRANCH.getValue(), branch.getBranchName(), branch.getBranchCode(), branch.getId());
+        return branchMapper.toBranchResponseDto(branch);
     }
 
-    public List<BranchResponseDto> findAll(){
-        return branchRepository.findAll()
-                .stream().map(branchMapper::toBranchResponseDto).toList();
+    public Page<BranchResponseDto> findAll(Pageable pageable){
+        return branchRepository.findAll(pageable)
+                .map(branchMapper::toBranchResponseDto);
     }
 }

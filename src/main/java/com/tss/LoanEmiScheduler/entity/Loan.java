@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditOverride;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
@@ -34,6 +35,7 @@ import java.time.LocalDateTime;
         "outstanding_balance <= principal_amount")
 @Audited
 @AuditOverride(forClass = BaseEntity.class, isAudited = true)
+@Where(clause = "is_deleted = false")
 public class Loan extends BaseEntity{
     @Column(unique = true, nullable = false)
     private String loanNumber;

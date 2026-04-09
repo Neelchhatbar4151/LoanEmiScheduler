@@ -203,15 +203,15 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
                         ? triggerEmi.getPenalInterest()
                         : BigDecimal.ZERO);
 
-        BigDecimal extra = emiPaid.subtract(ideal);
-
-        if (extra.compareTo(BigDecimal.ZERO) > 0) {
-            loan.setOutstandingBalance(
-                    loan.getOutstandingBalance()
-                            .subtract(extra)
-                            .max(BigDecimal.ZERO)
-            );
-        }
+//        BigDecimal extra = emiPaid.subtract(ideal);
+//
+//        if (extra.compareTo(BigDecimal.ZERO) > 0) {
+//            loan.setOutstandingBalance(
+//                    loan.getOutstandingBalance()
+//                            .subtract(extra)
+//                            .max(BigDecimal.ZERO)
+//            );
+//        }
 
         int remainingTenure = futureEmis.size();
 
@@ -253,10 +253,6 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
             emi.setInterestComponent(interest);
             emi.setPrincipalComponent(principal);
 
-            if(newEmi.compareTo(BigDecimal.ZERO) == 0)
-                emiActionService.handleCancelled(emi);
-            else
-                emiActionService.handlePending(emi);
             emi.setVersion(newVersion);
             emi.setIsActive(true);
 
@@ -264,6 +260,11 @@ public class ReducingBalanceLoanStrategy implements ILoanStrategy {
 
             emi.setRemainingInterestComponent(interest);
             emi.setRemainingPrincipalComponent(principal);
+
+            if(newEmi.compareTo(BigDecimal.ZERO) == 0)
+                emiActionService.handleCancelled(emi);
+            else
+                emiActionService.handlePending(emi);
 
             newEmis.add(emi);
 

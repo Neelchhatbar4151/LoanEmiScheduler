@@ -3,13 +3,12 @@ package com.tss.LoanEmiScheduler.service;
 import com.tss.LoanEmiScheduler.action_service.LoanActionService;
 import com.tss.LoanEmiScheduler.dto.request.ApproveRequestDto;
 import com.tss.LoanEmiScheduler.dto.request.RejectRequestDto;
-import com.tss.LoanEmiScheduler.dto.response.LoanResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.OfficerAppliedLoanResponseDto;
+import com.tss.LoanEmiScheduler.dto.response.OfficerLoanResponseDto;
 import com.tss.LoanEmiScheduler.dto_mapper.EmiMapper;
 import com.tss.LoanEmiScheduler.dto_mapper.LoanMapper;
 import com.tss.LoanEmiScheduler.entity.*;
-import com.tss.LoanEmiScheduler.enums.LoanStatus;
-import com.tss.LoanEmiScheduler.enums.NotificationType;
-import com.tss.LoanEmiScheduler.enums.Role;
+import com.tss.LoanEmiScheduler.enums.*;
 import com.tss.LoanEmiScheduler.exception.ResourceNotFoundException;
 import com.tss.LoanEmiScheduler.factory.LoanStrategyFactory;
 import com.tss.LoanEmiScheduler.repository.BorrowerRepository;
@@ -19,12 +18,15 @@ import com.tss.LoanEmiScheduler.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,28 +50,26 @@ public class OfficerService {
     private final LoanActionService loanActionService;
     private final StrategySuggestionService strategySuggestionService;
 
-    public List<LoanResponseDto> getAllLoans(LoanStatus loanStatus){
+    public Page<OfficerLoanResponseDto> getAllLoans(LoanStatus loanStatus, Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
         if(!user.getRole().equals(Role.OFFICER)) {
             throw new SecurityException("Not an officer.");
         }
-
         Officer officer = ((Officer) user);
 
-        List<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus);
-        List<LoanResponseDto> dtos = new ArrayList<>();
-        for (Loan loan : pendingLoansForOfficer) {
-            LoanResponseDto dto = loanMapper.toDto(loan);
-            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
+        Page<Loan> pendingLoansForOfficer = loanRepo.findByBranchIdAndLoanStatus(officer.getBranch().getId(), loanStatus, pageable);
+        return pendingLoansForOfficer.map(loan -> {
+            OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
+            if (loan.getLoanStatus().equals(LoanStatus.APPLIED)) {
                 dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
-            dtos.add(dto);
-        }
-        return dtos;
+            }
+            return dto;
+        });
     }
 
-    public List<LoanResponseDto> getAllLoansByOfficer(){
+    public Page<OfficerLoanResponseDto> getAllLoansByOfficer(Pageable pageable){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -79,16 +79,18 @@ public class OfficerService {
 
         Officer officer = ((Officer) user);
 
-        List<Loan> allLoans = loanRepo.findByOfficerId(officer.getId());
-        List<LoanResponseDto> dtos = new ArrayList<>();
-        for (Loan loan : allLoans) {
-            LoanResponseDto dto = loanMapper.toDto(loan);
-            dtos.add(dto);
-        }
-        return dtos;
+        Page<Loan> allLoans = loanRepo.findByOfficerId(officer.getId(), pageable);
+//        return allLoans.map(loanMapper::toOfficerLoanResponseDto);
+        return allLoans.map(loan -> {
+            OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
+            if (loan.getLoanStatus().equals(LoanStatus.APPLIED)) {
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            }
+            return dto;
+        });
     }
 
-    public List<LoanResponseDto> findLoanByBorrower(String  accountNumber) {
+    public Page<OfficerLoanResponseDto> findLoanByBorrower(String  accountNumber, Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String borrowerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(borrowerIdentifier).orElseThrow();
@@ -99,17 +101,16 @@ public class OfficerService {
 
         Long branchId = ((Officer) user).getBranch().getId();
         Long borrowerId = borrowerRepository.findByAccountNumber(accountNumber).orElseThrow().getId();
-        List<Loan> loanList = loanRepo.findByBranchIdAndBorrowerId(branchId, borrowerId);
-        List<LoanResponseDto> dtos = new ArrayList<>();
-        for (Loan loan : loanList) {
-            LoanResponseDto dto = loanMapper.toDto(loan);
-            if(loan.getLoanStatus().equals(LoanStatus.APPLIED))
-                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
-            dtos.add(dto);
-        }
+        Page<Loan> loanList = loanRepo.findByBranchIdAndBorrowerId(branchId, borrowerId, pageable);
         if (loanList.isEmpty())
             throw new ResourceNotFoundException("Loans");
-        return dtos;
+        return loanList.map(loan -> {
+            OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
+            if (LoanStatus.APPLIED.equals(loan.getLoanStatus())) {
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+            }
+            return dto;
+        });
     }
 
     private void checkIfEligible(Loan loan, Officer officer){
@@ -130,32 +131,50 @@ public class OfficerService {
     }
 
     @Transactional
-    public LoanResponseDto approveLoan(ApproveRequestDto request){
+    public OfficerAppliedLoanResponseDto approveLoan(ApproveRequestDto request){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
         if(!user.getRole().equals(Role.OFFICER)) {
             throw new SecurityException("Not an officer.");
         }
+
+        if(request.getLoanStrategy() == LoanStrategy.REJECT){
+            throw new IllegalArgumentException("Reject is not an approval strategy.");
+        }
+
         Officer officer = ((Officer) user);
         Loan loan = loanRepo.findByLoanNumber(request.getLoanNumber()).orElseThrow(() -> new ResourceNotFoundException("Loan"));
         checkIfEligible(loan, officer);
 
-        //When applying loan application this will get set.
-//        loan.setInterestRate(GlobalConstant.INTEREST_RATE);
+        log.info("{} Approve: Approving loan number {} applied by borrower number {} for branch code {} approve by officer username {}",
+                LogTag.LOAN.getValue(),
+                loan.getLoanNumber(),
+                loan.getBorrower().getAccountNumber(),
+                loan.getBranch().getBranchCode(),
+                officer.getUsername()
+        );
 
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
         List<Emi> schedule = strategyFactory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
 
+        Borrower borrower = loan.getBorrower();
+        borrower.setDebtAmount(
+                borrower.getDebtAmount().add(
+                schedule.stream().map(Emi::getEmiAmount).reduce(BigDecimal.ZERO, BigDecimal::add)));
+        userRepository.save(borrower);
+
         emiRepository.saveAll(schedule);
 
-        LoanResponseDto dto = loanMapper.toDto(loan);
+        log.info("{}[LogTag.EMI.getValue()] Emi schedule: created for loan id {} schedule: {}", LogTag.LOAN.getValue(), loan.getId(), schedule);
+
+        OfficerAppliedLoanResponseDto dto = loanMapper.toOfficerAppliedLoanResponseDto(loan);
         dto.setEmis(emiMapper.toDtoList(schedule));
         loan.setLoanStrategy(request.getLoanStrategy());
-        dto.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
+        log.info("{} Approve: Loan {} approved with with strategy {}", LogTag.LOAN.getValue(), loan.getId(), loan.getLoanStrategy());
 
         try {
             Map<String, Object> variables = new HashMap<>();
@@ -164,6 +183,7 @@ public class OfficerService {
             variables.put("name", loan.getBorrower().getFirstName());
 
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.APPROVAL, variables);
+            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LogTag.LOAN.getValue(), user.getId(), NotificationType.APPROVAL, loan.getId());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -172,7 +192,7 @@ public class OfficerService {
     }
 
     @Transactional
-    public LoanResponseDto rejectLoan(RejectRequestDto requestDto){
+    public OfficerAppliedLoanResponseDto rejectLoan(RejectRequestDto requestDto){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String officerIdentifier = authentication.getName();
         User user = userRepository.findByIdentifier(officerIdentifier).orElseThrow();
@@ -184,7 +204,15 @@ public class OfficerService {
         loan.setOfficer(officer);
         checkIfEligible(loan, officer);
 
+        log.info("{} Reject: Rejecting loan number {} applied by borrower number {} for branch code {} reject by officer username {}",
+                LogTag.LOAN.getValue(),
+                loan.getLoanNumber(),
+                loan.getBorrower().getAccountNumber(),
+                loan.getBranch().getBranchCode(),
+                officer.getUsername()
+        );
         loanActionService.handleRejected(loan);
+
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("loanNumber", loan.getLoanNumber());
@@ -192,11 +220,12 @@ public class OfficerService {
 
         try {
             notificationService.sendNotification(loan.getBorrower().getEmail(), NotificationType.REJECTION, variables);
+            log.info("{} Email: Email sent to borrower {} for {} of loan {}", LogTag.LOAN.getValue(), user.getId(), NotificationType.REJECTION, loan.getId());
         }
         catch(Exception e){
             throw new RuntimeException(e);
         }
 
-        return loanMapper.toDto(loan);
+        return loanMapper.toOfficerAppliedLoanResponseDto(loan);
     }
 }

@@ -1,9 +1,11 @@
 package com.tss.LoanEmiScheduler.service;
 
+import com.tss.LoanEmiScheduler.enums.LogTag;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,10 +18,12 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class JwtService {
 
     private String secretKey="";
+
     public JwtService() throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
         SecretKey sk = keyGenerator.generateKey();
@@ -28,12 +32,15 @@ public class JwtService {
 
     public String generateToken(Authentication authentication) {
         Map<String, Object> claims = new HashMap<>();
+        log.info("{} Jwt: Generate token for authentication {}", LogTag.SECURITY.getValue(), authentication.getName());
+
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
         claims.put("roles", roles);
 
+        log.info("{} Jwt: Extract roles: {} and claims: {} for {}", LogTag.SECURITY.getValue(), roles, claims, authentication.getName());
         return Jwts.builder()
                 .claims(claims)
                 .subject(authentication.getName())
@@ -65,9 +72,14 @@ public class JwtService {
                 .getPayload();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractIdentifier(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            log.error("{} Jwt: Validation failed - {}", LogTag.SECURITY.getValue(), e.getMessage());
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
