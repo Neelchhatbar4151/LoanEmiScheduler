@@ -23,6 +23,6 @@ public class OfficerAppliedLoanResponseDto {
     private String branchCode;
     private LoanStatus loanStatus;
     private LoanType loanType;
-    private List<EmiResponseDto> emiResponseDtoList;
+    private List<EmiResponseDto> emis;
 }
 

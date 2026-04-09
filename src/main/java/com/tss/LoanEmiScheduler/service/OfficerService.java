@@ -63,7 +63,7 @@ public class OfficerService {
         return pendingLoansForOfficer.map(loan -> {
             OfficerLoanResponseDto dto = loanMapper.toOfficerLoanResponseDto(loan);
             if (loan.getLoanStatus().equals(LoanStatus.APPLIED)) {
-                dto.setLoanStrategy(strategySuggestionService.getSuggestedStrategy(loan));
+                dto.setSuggestedStrategy(strategySuggestionService.getSuggestedStrategy(loan));
             }
             return dto;
         });
@@ -155,8 +155,6 @@ public class OfficerService {
                 officer.getUsername()
         );
 
-        
-
         loan.setApprovedAt(LocalDateTime.now());
         loan.setOfficer(officer);
         List<Emi> schedule = strategyFactory.getStrategy(request.getLoanStrategy()).generateSchedule(loan);
@@ -172,7 +170,7 @@ public class OfficerService {
         log.info("{}[LogTag.EMI.getValue()] Emi schedule: created for loan id {} schedule: {}", LogTag.LOAN.getValue(), loan.getId(), schedule);
 
         OfficerAppliedLoanResponseDto dto = loanMapper.toOfficerAppliedLoanResponseDto(loan);
-        dto.setEmiResponseDtoList(emiMapper.toDtoList(schedule));
+        dto.setEmis(emiMapper.toDtoList(schedule));
         loan.setLoanStrategy(request.getLoanStrategy());
 
         loanActionService.handleActive(loan);
