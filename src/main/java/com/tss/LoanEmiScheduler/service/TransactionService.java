@@ -104,7 +104,7 @@ public class TransactionService {
         );
 
         borrower.setDebtAmount(
-                borrower.getDebtAmount().add(
+                borrower.getDebtAmount().subtract(
                         transaction.getTransactionAmount().subtract(extraAmount)
                 )
         );

@@ -169,13 +169,13 @@ public class StepUpLoanStrategy implements ILoanStrategy {
                         ? triggerEmi.getPenalInterest()
                         : BigDecimal.ZERO);
 
-        BigDecimal extra = emiPaid.subtract(ideal);
+//        BigDecimal extra = emiPaid.subtract(ideal);
 
-        if (extra.compareTo(BigDecimal.ZERO) > 0) {
-            loan.setOutstandingBalance(
-                    loan.getOutstandingBalance().subtract(extra).max(BigDecimal.ZERO)
-            );
-        }
+//        if (extra.compareTo(BigDecimal.ZERO) > 0) {
+//            loan.setOutstandingBalance(
+//                    loan.getOutstandingBalance().subtract(extra).max(BigDecimal.ZERO)
+//            );
+//        }
 
         int remainingTenure = futureEmis.size();
         BigDecimal newPrincipal = loan.getOutstandingBalance();

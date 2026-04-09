@@ -30,7 +30,7 @@ public class AuthController {
     public ResponseEntity<OfficerSignUpResponseDto> register(@RequestBody@Valid OfficerSignUpRequestDto officerSignUpDto){
         log.info("{} Signup: Initiating registration for Officer: {}", LogTag.AUTH.getValue(), officerSignUpDto.getEmail());
         OfficerSignUpResponseDto officerSignUpResponseDto = authService.register(officerSignUpDto);
-        log.info("[LogTag.AUTH.getValue()] Signup: SUCCESS for Officer: {}", officerSignUpDto.getEmail());
+        log.info("{} Signup: SUCCESS for Officer: {}", LogTag.AUTH.getValue(), officerSignUpDto.getEmail());
         return ResponseEntity.ok(officerSignUpResponseDto);
     }
     @PostMapping("/signup/borrower")

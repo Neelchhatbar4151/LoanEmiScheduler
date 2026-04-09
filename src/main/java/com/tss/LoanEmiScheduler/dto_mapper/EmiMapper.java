@@ -13,6 +13,7 @@ public interface EmiMapper {
 
     @Mapping(source = "penalty.penaltyAmount", target = "penaltyAmount", defaultExpression = "java(java.math.BigDecimal.ZERO)")
     @Mapping(source = "penalty.remainingAmount", target = "penaltyRemaining", defaultExpression = "java(java.math.BigDecimal.ZERO)")
+    @Mapping(source = "loan.loanNumber", target = "loanNumber")
     EmiResponseDto toDto(Emi emi);
 
     @Mapping(source = "loan.loanNumber", target = "loanNumber")
